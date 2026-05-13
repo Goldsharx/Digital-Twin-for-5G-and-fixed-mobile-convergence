@@ -1,12 +1,17 @@
 import React from 'react';
 import { METRO_AGGREGATE } from '../data/metros.js';
+import { getTotalSubscribers } from '../data/timeline.js';
 import PhaseToggle from './PhaseToggle.jsx';
 
 function fmt(n) {
   return n.toLocaleString('en-US');
 }
 
-export default function StatsBar({ phase, setPhase }) {
+export default function StatsBar({ phase, setPhase, year }) {
+  const subs = getTotalSubscribers(year);
+  const isPast = year < 2026;
+  const isFuture = year > 2026;
+
   return (
     <>
       <div className="pointer-events-none absolute left-4 top-4 z-20">
@@ -21,8 +26,17 @@ export default function StatsBar({ phase, setPhase }) {
           <div className="mt-0.5 text-lg font-semibold leading-tight">
             Quantum Fiber Digital Twin
           </div>
-          <div className="text-[10px] uppercase tracking-wider text-zinc-400">
-            Reality Canvas · Sprint 0
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wider text-zinc-400">
+              Reality Canvas · Sprint 0
+            </span>
+            {year !== 2026 && (
+              <span className={`rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
+                isPast ? 'bg-zinc-700/50 text-zinc-400' : 'bg-purple-500/20 text-purple-400'
+              }`}>
+                {Math.floor(year)} {isPast ? 'Historical' : 'Projected'}
+              </span>
+            )}
           </div>
         </div>
         <div className="mt-2">
@@ -33,8 +47,8 @@ export default function StatsBar({ phase, setPhase }) {
       <div className="pointer-events-none absolute right-4 top-4 z-20">
         <div className="glass rounded-md px-4 py-2.5">
           <div className="flex gap-5 font-mono text-xs">
-            <Stat label="Subscribers" value={fmt(METRO_AGGREGATE.subscribers)} />
-            <Stat label="Homes Passed" value={fmt(METRO_AGGREGATE.homesPassed)} />
+            <Stat label="Subscribers" value={fmt(subs)} highlight={isFuture} />
+            <Stat label="Homes Passed" value={fmt(Math.round(subs * 2.88))} />
             <Stat label="Metros" value={METRO_AGGREGATE.metros} />
             <Stat label="Central Offices" value={METRO_AGGREGATE.centralOffices} />
             <Stat label="States" value={16} />
@@ -45,10 +59,10 @@ export default function StatsBar({ phase, setPhase }) {
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ label, value, highlight }) {
   return (
     <div>
-      <div className="text-base font-semibold text-white">{value}</div>
+      <div className={`text-base font-semibold ${highlight ? 'text-purple-300' : 'text-white'}`}>{value}</div>
       <div className="text-[9px] uppercase tracking-wider text-zinc-400">{label}</div>
     </div>
   );

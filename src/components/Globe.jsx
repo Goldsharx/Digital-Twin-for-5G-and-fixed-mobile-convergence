@@ -25,16 +25,26 @@ import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { STATUS_COLORS, heightToZoomLevel } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
+import { METRO_GROWTH } from '../data/timeline.js';
 import CellTowerLayer from './CellTowerLayer.jsx';
 
 function statusColor(status) {
   return Color.fromCssColorString(STATUS_COLORS[status]?.hex || '#9ca3af');
 }
 
-function MetroLayer({ visible, onClick, onDoubleClick }) {
+function getMetroLaunchYear(metroId) {
+  const curve = METRO_GROWTH[metroId];
+  if (!curve) return 2019;
+  return Math.min(...Object.keys(curve).map(Number));
+}
+
+function MetroLayer({ visible, onClick, onDoubleClick, timelineYear }) {
   if (!visible) return null;
   return METROS.map((m) => {
+    const launchYear = getMetroLaunchYear(m.id);
+    if (timelineYear < launchYear) return null;
     const sizePx = 14 + Math.min(18, Math.round(m.subscriberCount / 18_000));
+    const isNewlyLaunched = timelineYear - launchYear < 1;
     return (
       <Entity
         key={m.id}
@@ -44,10 +54,10 @@ function MetroLayer({ visible, onClick, onDoubleClick }) {
         name={m.name}
       >
         <PointGraphics
-          pixelSize={sizePx}
+          pixelSize={isNewlyLaunched ? sizePx * 0.7 : sizePx}
           color={statusColor(m.status)}
-          outlineColor={Color.WHITE}
-          outlineWidth={2}
+          outlineColor={isNewlyLaunched ? Color.fromCssColorString('#22c55e') : Color.WHITE}
+          outlineWidth={isNewlyLaunched ? 3 : 2}
           heightReference={HeightReference.CLAMP_TO_GROUND}
           scaleByDistance={new NearFarScalar(1.5e5, 1.4, 1.0e7, 0.8)}
           translucencyByDistance={new NearFarScalar(1.5e5, 1.0, 2.5e7, 0.55)}
@@ -70,6 +80,38 @@ function MetroLayer({ visible, onClick, onDoubleClick }) {
       </Entity>
     );
   });
+}
+
+function ScenarioMetroLayer({ visible, projectedMetros }) {
+  if (!visible || projectedMetros.length === 0) return null;
+  return projectedMetros.map((pm) => (
+    <Entity key={`proj-${pm.name}`} position={Cartesian3.fromDegrees(pm.lng, pm.lat, 0)} name={pm.name}>
+      <PointGraphics
+        pixelSize={12}
+        color={Color.fromCssColorString('#8b5cf6').withAlpha(0.6)}
+        outlineColor={Color.fromCssColorString('#8b5cf6')}
+        outlineWidth={2}
+        heightReference={HeightReference.CLAMP_TO_GROUND}
+        scaleByDistance={new NearFarScalar(1.5e5, 1.4, 1.0e7, 0.8)}
+        translucencyByDistance={new NearFarScalar(1.5e5, 1.0, 2.5e7, 0.55)}
+      />
+      <LabelGraphics
+        text={`${pm.name} · ${(pm.subs / 1000).toFixed(0)}K`}
+        font="500 11px Inter, sans-serif"
+        fillColor={Color.fromCssColorString('#c4b5fd')}
+        outlineColor={Color.BLACK}
+        outlineWidth={3}
+        style={LabelStyle.FILL_AND_OUTLINE}
+        verticalOrigin={VerticalOrigin.BOTTOM}
+        horizontalOrigin={HorizontalOrigin.CENTER}
+        pixelOffset={new Cartesian2(0, -18)}
+        showBackground={true}
+        backgroundColor={Color.fromCssColorString('rgba(88,28,135,0.5)')}
+        backgroundPadding={new Cartesian2(6, 3)}
+        translucencyByDistance={new NearFarScalar(1.5e5, 1.0, 2.5e7, 0.5)}
+      />
+    </Entity>
+  ));
 }
 
 function COLayer({ visible, metroId, onClick, onDoubleClick, selectedId }) {
@@ -390,6 +432,8 @@ export default function Globe({
   cellTowers,
   phase,
   selection,
+  timelineYear,
+  projectedMetros,
   onZoomChange,
   onMetroClick,
   onMetroDoubleClick,
@@ -490,6 +534,11 @@ export default function Globe({
         visible={showMetros}
         onClick={onMetroClick}
         onDoubleClick={onMetroDoubleClick}
+        timelineYear={timelineYear}
+      />
+      <ScenarioMetroLayer
+        visible={showMetros}
+        projectedMetros={projectedMetros}
       />
       <COTrunkLayer
         visible={showCOTrunks}

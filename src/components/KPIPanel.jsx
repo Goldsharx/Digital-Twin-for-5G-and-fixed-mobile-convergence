@@ -41,8 +41,7 @@ function ScenarioCard({ scenario, selected, onClick }) {
   );
 }
 
-export default function KPIPanel({ year, visible, onClose }) {
-  const [activeScenario, setActiveScenario] = useState(null);
+export default function KPIPanel({ year, visible, onClose, activeScenario, setActiveScenario }) {
   const [tab, setTab] = useState('kpis');
 
   if (!visible) return null;
@@ -52,7 +51,7 @@ export default function KPIPanel({ year, visible, onClose }) {
   for (const k of KPIS) grouped[k.category].push(k);
 
   return (
-    <div className="absolute left-4 bottom-[5rem] z-20 w-[20rem]">
+    <div className="pointer-events-auto absolute left-4 bottom-[5rem] z-30 w-[20rem]">
       <div className="glass flex max-h-[28rem] flex-col overflow-hidden rounded-md">
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-axon-teal">

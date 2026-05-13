@@ -16,6 +16,7 @@ import { CAMERA_VIEWS } from './data/constants.js';
 import { useMetroGPON } from './hooks/useGeneratedData.js';
 import { useSimulation } from './hooks/useSimulation.js';
 import { generateCellTowers } from './data/cellTowers.js';
+import { SCENARIOS } from './data/scenarios.js';
 
 export default function App() {
   const viewerRef = useRef(null);
@@ -32,6 +33,13 @@ export default function App() {
   const [timelineYear, setTimelineYear] = useState(2026);
   const [timelinePlaying, setTimelinePlaying] = useState(false);
   const [showKPIs, setShowKPIs] = useState(false);
+  const [activeScenario, setActiveScenario] = useState(null);
+
+  const projectedMetros = useMemo(() => {
+    if (!activeScenario) return [];
+    const scenario = SCENARIOS.find((s) => s.id === activeScenario);
+    return scenario?.projectedMetros || [];
+  }, [activeScenario]);
 
   // Generate the GPON tree for the currently-focused metro only.
   const { splitters, onts } = useMetroGPON(focusedMetroId);
@@ -164,8 +172,14 @@ export default function App() {
     return () => clearInterval(interval);
   }, [timelinePlaying]);
 
+  const eraStyle = useMemo(() => {
+    if (timelineYear < 2025) return { filter: 'saturate(0.6) sepia(0.15)' };
+    if (timelineYear > 2027) return { filter: 'saturate(1.1) hue-rotate(5deg)' };
+    return {};
+  }, [timelineYear]);
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-axon-deep text-white">
+    <div className="relative h-full w-full overflow-hidden bg-axon-deep text-white" style={eraStyle}>
       <Globe
         viewerRef={viewerRef}
         zoomLevel={zoomLevel}
@@ -177,6 +191,8 @@ export default function App() {
         cellTowers={cellTowers}
         phase={phase}
         selection={selection}
+        timelineYear={timelineYear}
+        projectedMetros={projectedMetros}
         onZoomChange={onZoomChange}
         onMetroClick={handleMetroClick}
         onMetroDoubleClick={handleMetroDoubleClick}
@@ -188,7 +204,7 @@ export default function App() {
         onTowerClick={handleTowerClick}
       />
 
-      <StatsBar phase={phase} setPhase={setPhase} />
+      <StatsBar phase={phase} setPhase={setPhase} year={timelineYear} />
 
       <Sidebar
         zoomLevel={zoomLevel}
@@ -196,6 +212,7 @@ export default function App() {
         focusedCO={focusedCO}
         onts={onts}
         showSources={showSources}
+        year={timelineYear}
         onToggleSources={() => setShowSources((s) => !s)}
         onReset={resetView}
         onStartStory={() => setStoryStep(0)}
@@ -253,6 +270,8 @@ export default function App() {
         year={timelineYear}
         visible={showKPIs}
         onClose={() => setShowKPIs(false)}
+        activeScenario={activeScenario}
+        setActiveScenario={setActiveScenario}
       />
 
       {storyStep !== null && (
