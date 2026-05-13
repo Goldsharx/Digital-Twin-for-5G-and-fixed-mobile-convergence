@@ -80,7 +80,8 @@ export default function Sidebar({
   showSources,
   onToggleSources,
   onReset,
-  onStartStory
+  onStartStory,
+  onToggleKPIs
 }) {
   // Compute health buckets for the current scope.
   const scopeCounts = useMemo(() => {
@@ -191,13 +192,19 @@ export default function Sidebar({
             onClick={onReset}
             className="flex-1 rounded-sm border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-medium text-zinc-200 transition hover:bg-white/10"
           >
-            🌍 Reset View
+            Reset
           </button>
           <button
             onClick={onStartStory}
             className="flex-1 rounded-sm border border-axon-blue/60 bg-axon-blue/15 px-2 py-1.5 text-[11px] font-medium text-axon-blue transition hover:bg-axon-blue/30"
           >
-            ▶ Story Mode
+            Story
+          </button>
+          <button
+            onClick={onToggleKPIs}
+            className="flex-1 rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-medium text-emerald-400 transition hover:bg-emerald-500/20"
+          >
+            KPIs
           </button>
         </div>
       </div>

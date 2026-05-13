@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3 } from 'cesium';
 import Globe from './components/Globe.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -8,6 +8,8 @@ import DeviceDetail from './components/DeviceDetail.jsx';
 import Subscriber360 from './components/Subscriber360.jsx';
 import EventTicker from './components/EventTicker.jsx';
 import StoryMode from './components/StoryMode.jsx';
+import TimeSlider from './components/TimeSlider.jsx';
+import KPIPanel from './components/KPIPanel.jsx';
 import { METROS } from './data/metros.js';
 import { CENTRAL_OFFICES } from './data/centralOffices.js';
 import { CAMERA_VIEWS } from './data/constants.js';
@@ -27,6 +29,9 @@ export default function App() {
   const [showSources, setShowSources] = useState(true);
   const [storyStep, setStoryStep] = useState(null); // null when story mode is off
   const [phase, setPhase] = useState('systems');
+  const [timelineYear, setTimelineYear] = useState(2026);
+  const [timelinePlaying, setTimelinePlaying] = useState(false);
+  const [showKPIs, setShowKPIs] = useState(false);
 
   // Generate the GPON tree for the currently-focused metro only.
   const { splitters, onts } = useMetroGPON(focusedMetroId);
@@ -148,6 +153,17 @@ export default function App() {
     setZoomHeight(height);
   }, []);
 
+  useEffect(() => {
+    if (!timelinePlaying) return;
+    const interval = setInterval(() => {
+      setTimelineYear((y) => {
+        if (y >= 2030) { setTimelinePlaying(false); return 2030; }
+        return Math.round((y + 0.5) * 10) / 10;
+      });
+    }, 800);
+    return () => clearInterval(interval);
+  }, [timelinePlaying]);
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-axon-deep text-white">
       <Globe
@@ -183,6 +199,7 @@ export default function App() {
         onToggleSources={() => setShowSources((s) => !s)}
         onReset={resetView}
         onStartStory={() => setStoryStep(0)}
+        onToggleKPIs={() => setShowKPIs((s) => !s)}
       />
 
       <Breadcrumb
@@ -222,6 +239,21 @@ export default function App() {
       )}
 
       <EventTicker events={events} />
+
+      {storyStep === null && (
+        <TimeSlider
+          year={timelineYear}
+          setYear={setTimelineYear}
+          playing={timelinePlaying}
+          setPlaying={setTimelinePlaying}
+        />
+      )}
+
+      <KPIPanel
+        year={timelineYear}
+        visible={showKPIs}
+        onClose={() => setShowKPIs(false)}
+      />
 
       {storyStep !== null && (
         <StoryMode
