@@ -2,6 +2,7 @@ import React from 'react';
 import SourceBadge from './SourceBadge.jsx';
 import { STATUS_COLORS } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
+import { getAlgorithmsForScope, getAgentsForScope } from '../data/algorithms.js';
 
 function fmt(n) {
   return typeof n === 'number' ? n.toLocaleString('en-US') : n;
@@ -81,7 +82,108 @@ function MetroDetail({ data, onClose, showSources }) {
   );
 }
 
-function CODetail({ data, onClose, showSources }) {
+function AlgorithmSlots({ scope, phase }) {
+  if (phase === 'people') return null;
+  const algos = getAlgorithmsForScope(scope);
+  if (algos.length === 0) return null;
+  const statusColors = { active: 'text-emerald-400', available: 'text-blue-400', 'not-wrapped': 'text-zinc-500' };
+  const statusLabels = { active: 'LIVE', available: 'READY', 'not-wrapped': 'RAW' };
+  return (
+    <div className="mt-3">
+      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+        DS Algorithms ({algos.length} / 400+)
+      </div>
+      <div className="space-y-1">
+        {algos.map((a) => (
+          <div key={a.id} className="flex items-center justify-between gap-2 rounded-sm bg-white/[0.03] px-2 py-1">
+            <span className="truncate text-[10.5px] text-zinc-300">{a.id} {a.name}</span>
+            <span className={`text-[9px] font-bold uppercase tracking-wider ${statusColors[a.status]}`}>
+              {statusLabels[a.status]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentSlots({ phase }) {
+  if (phase !== 'agents') return null;
+  const agents = getAgentsForScope();
+  const statusColors = { prototype: 'text-purple-400', 'not-built': 'text-zinc-500' };
+  return (
+    <div className="mt-3">
+      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+        AI Agents (5 Engineers)
+      </div>
+      <div className="space-y-1">
+        {agents.map((a) => (
+          <div key={a.id} className="flex items-center justify-between gap-2 rounded-sm border border-purple-500/10 bg-purple-500/5 px-2 py-1">
+            <div className="min-w-0">
+              <div className="truncate text-[10.5px] text-zinc-200">{a.name}</div>
+              <div className="truncate text-[9px] text-zinc-500">{a.capability}</div>
+            </div>
+            <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider ${statusColors[a.status]}`}>
+              {a.status === 'prototype' ? 'PROTO' : 'SLOT'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TowerDetail({ data, onClose, showSources, phase }) {
+  return (
+    <>
+      <PanelHeader
+        kicker={`Cell Tower · ${data.type}`}
+        title={data.name}
+        subtitle={`${data.vendor} ${data.model} · ${data.backhaul}`}
+        status={data.status}
+        onClose={onClose}
+      />
+      <div className="px-4 py-3">
+        <Field label="Type" value={data.type} source="orchestrator" showSources={showSources} />
+        <Field label="Height" value={`${data.heightM} m`} source="orchestrator" showSources={showSources} />
+        <Field label="Sectors" value={data.sectors} source="orchestrator" showSources={showSources} />
+        <Field label="Active Users" value={fmt(data.activeUsers)} source="orchestrator" showSources={showSources} />
+        <Field label="Handovers/hr" value={fmt(data.handoversPerHour)} source="orchestrator" showSources={showSources} />
+        <Field label="Backhaul" value={data.backhaul} source="orchestrator" showSources={showSources} />
+        <Field label="Vendor" value={data.vendor} source="inventory" showSources={showSources} />
+        <Field label="Model" value={data.model} source="inventory" showSources={showSources} />
+
+        <div className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+          Radio Units ({data.radios.length})
+        </div>
+        {data.radios.map((r, i) => (
+          <div key={i} className="mb-2 rounded-sm border border-white/5 bg-white/[0.02] px-2.5 py-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-white">{r.band}</span>
+              <span className="text-[9px] uppercase text-zinc-400">{r.tech}</span>
+            </div>
+            <div className="mt-1 grid grid-cols-3 gap-1 text-[10px]">
+              <div><span className="text-zinc-500">Range </span><span className="text-zinc-300">{r.range_km} km</span></div>
+              <div><span className="text-zinc-500">Users </span><span className="text-zinc-300">{r.activeUsers}</span></div>
+              <div><span className="text-zinc-500">Util </span><span className="text-zinc-300">{r.utilizationPct}%</span></div>
+            </div>
+            <div className="mt-1 text-[10px]">
+              <span className="text-zinc-500">Throughput </span><span className="text-zinc-300">{fmt(r.throughputMbps)} Mbps</span>
+            </div>
+          </div>
+        ))}
+
+        <Field label="Mobile Subscriber Link" value="?" source="greenwave" missing showSources={showSources} />
+        <Field label="Fixed-Mobile Handover" value="?" source="greenwave" missing showSources={showSources} />
+
+        <AlgorithmSlots scope="metro" phase={phase} />
+        <AgentSlots phase={phase} />
+      </div>
+    </>
+  );
+}
+
+function CODetail({ data, onClose, showSources, phase }) {
   return (
     <>
       <PanelHeader
@@ -98,6 +200,12 @@ function CODetail({ data, onClose, showSources }) {
         <Field label="Technology" value={data.technology} source="orchestrator" showSources={showSources} />
         <Field label="Vendor" value={data.vendor} source="inventory" missing showSources={showSources} />
         <Field label="Asset Lifecycle" value="—" source="inventory" missing showSources={showSources} />
+        <Field label="Power / Cooling" value="?" source="inventory" missing showSources={showSources} />
+        <Field label="Truck Rolls (30d)" value="?" source="inventory" missing showSources={showSources} />
+
+        <AlgorithmSlots scope="co" phase={phase} />
+        <AgentSlots phase={phase} />
+
         <div className="mt-2 text-[10.5px] italic text-zinc-400">
           Double-click to enter the GPON tree.
         </div>
@@ -127,7 +235,7 @@ function SplitterDetail({ data, onClose, showSources }) {
   );
 }
 
-function ONTDetail({ data, onClose, onOpenSubscriber360, showSources }) {
+function ONTDetail({ data, onClose, onOpenSubscriber360, showSources, phase }) {
   const home = useHomeNetwork(data);
   const radio6 = home?.gateway.radios.find((r) => r.band === '6 GHz');
   const totalClients = home ? (home.gateway.radios.reduce((s, r) => s + r.clientCount, 0) + home.meshPods.reduce((s, p) => s + p.clientCount, 0)) : 0;
@@ -168,6 +276,17 @@ function ONTDetail({ data, onClose, onOpenSubscriber360, showSources }) {
         <Field label="Billing Status" value="?" source="expresse" missing showSources={showSources} />
         <Field label="Mobile Line" value="?" source="greenwave" missing showSources={showSources} />
         <Field label="Handover Events" value="?" source="greenwave" missing showSources={showSources} />
+        <Field label="Cell Tower Link" value="?" source="greenwave" missing showSources={showSources} />
+        <Field label="Signal Strength" value="?" source="greenwave" missing showSources={showSources} />
+
+        <div className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Inventory & Lifecycle</div>
+        <Field label="Install Date" value="?" source="inventory" missing showSources={showSources} />
+        <Field label="Warranty Exp." value="?" source="inventory" missing showSources={showSources} />
+        <Field label="Last Truck Roll" value="?" source="inventory" missing showSources={showSources} />
+        <Field label="Asset Tag" value="?" source="inventory" missing showSources={showSources} />
+
+        <AlgorithmSlots scope="ont" phase={phase} />
+        <AgentSlots phase={phase} />
 
         <button
           onClick={onOpenSubscriber360}
@@ -180,20 +299,22 @@ function ONTDetail({ data, onClose, onOpenSubscriber360, showSources }) {
   );
 }
 
-export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, showSources }) {
+export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, showSources, phase }) {
   if (!selection) return null;
   return (
     <div className="absolute right-4 top-[7.5rem] bottom-[5.5rem] z-20 w-[22rem]">
       <div className="glass flex h-full flex-col overflow-y-auto rounded-md">
         {selection.type === 'metro' && <MetroDetail data={selection.data} onClose={onClose} showSources={showSources} />}
-        {selection.type === 'co' && <CODetail data={selection.data} onClose={onClose} showSources={showSources} />}
+        {selection.type === 'co' && <CODetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}
         {selection.type === 'splitter' && <SplitterDetail data={selection.data} onClose={onClose} showSources={showSources} />}
+        {selection.type === 'tower' && <TowerDetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}
         {selection.type === 'ont' && (
           <ONTDetail
             data={selection.data}
             onClose={onClose}
             onOpenSubscriber360={onOpenSubscriber360}
             showSources={showSources}
+            phase={phase}
           />
         )}
       </div>

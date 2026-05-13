@@ -25,6 +25,7 @@ import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { STATUS_COLORS, heightToZoomLevel } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
+import CellTowerLayer from './CellTowerLayer.jsx';
 
 function statusColor(status) {
   return Color.fromCssColorString(STATUS_COLORS[status]?.hex || '#9ca3af');
@@ -342,6 +343,8 @@ export default function Globe({
   focusedCOId,
   splitters,
   onts,
+  cellTowers,
+  phase,
   selection,
   onZoomChange,
   onMetroClick,
@@ -350,7 +353,8 @@ export default function Globe({
   onCODoubleClick,
   onSplitterClick,
   onONTClick,
-  onONTDoubleClick
+  onONTDoubleClick,
+  onTowerClick
 }) {
   const innerViewerRef = useRef(null);
   const cameraHandlerRef = useRef(null);
@@ -416,9 +420,11 @@ export default function Globe({
   const showONTs = focusedMetroId && (zoomLevel === 'neighborhood' || zoomLevel === 'building');
   const showFiber = focusedMetroId && (zoomLevel === 'city' || zoomLevel === 'neighborhood' || zoomLevel === 'building');
   const showHomeNetwork = zoomLevel === 'building' && selection?.type === 'ont';
+  const showCellTowers = focusedMetroId && (zoomLevel === 'city' || zoomLevel === 'neighborhood');
 
   const selectedONTId = selection?.type === 'ont' ? selection.id : null;
   const selectedCOId = selection?.type === 'co' ? selection.id : null;
+  const selectedTowerId = selection?.type === 'tower' ? selection.id : null;
 
   const ontsByCO = useMemo(() => {
     const map = {};
@@ -480,6 +486,13 @@ export default function Globe({
         onClick={onONTClick}
         onDoubleClick={onONTDoubleClick}
         selectedId={selectedONTId}
+      />
+      <CellTowerLayer
+        towers={cellTowers}
+        visible={showCellTowers}
+        showCoverage={phase !== 'people'}
+        onClick={onTowerClick}
+        selectedId={selectedTowerId}
       />
       {showHomeNetwork && selection?.data && (
         <HomeNetworkLayer visible ont={selection.data} />

@@ -1,11 +1,12 @@
 import React from 'react';
 import { METRO_AGGREGATE } from '../data/metros.js';
+import PhaseToggle from './PhaseToggle.jsx';
 
 function fmt(n) {
   return n.toLocaleString('en-US');
 }
 
-export default function StatsBar() {
+export default function StatsBar({ phase, setPhase }) {
   return (
     <>
       <div className="pointer-events-none absolute left-4 top-4 z-20">
@@ -23,6 +24,9 @@ export default function StatsBar() {
           <div className="text-[10px] uppercase tracking-wider text-zinc-400">
             Reality Canvas · Sprint 0
           </div>
+        </div>
+        <div className="mt-2">
+          <PhaseToggle phase={phase} setPhase={setPhase} />
         </div>
       </div>
 

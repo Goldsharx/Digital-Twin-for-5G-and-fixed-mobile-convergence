@@ -2,6 +2,7 @@ import React from 'react';
 import SourceBadge from './SourceBadge.jsx';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
 import { STATUS_COLORS } from '../data/constants.js';
+import { getAlgorithmsForScope, getAgentsForScope } from '../data/algorithms.js';
 
 function Section({ title, source, missing, children }) {
   return (
@@ -32,19 +33,90 @@ function Row({ label, value }) {
   );
 }
 
-function GraphAscii() {
+function MiniGraphSVG({ ont, gateway, meshPods, clients }) {
+  const w = 320, h = 160;
+  const nodes = [
+    { id: 'sub', label: ont.subscriberId.slice(0, 8), x: 30, y: 80, color: '#f97316' },
+    { id: 'svc', label: ont.plan, x: 120, y: 40, color: '#3b82f6' },
+    { id: 'ont', label: ont.model, x: 120, y: 120, color: '#22c55e' },
+    { id: 'gw', label: 'W1700K', x: 210, y: 80, color: '#00D4AA' },
+  ];
+  meshPods.forEach((p, i) => {
+    nodes.push({ id: `pod${i}`, label: `Pod ${i + 1}`, x: 280, y: 40 + i * 50, color: '#8b5cf6' });
+  });
+  const edges = [
+    ['sub', 'svc'], ['sub', 'ont'], ['ont', 'gw'],
+    ...meshPods.map((_, i) => ['gw', `pod${i}`])
+  ];
   return (
-    <pre className="overflow-x-auto rounded-sm border border-axon-teal/30 bg-axon-teal/5 px-3 py-2 font-mono text-[10.5px] leading-[1.3] text-axon-teal">{`Subscriber ─── Service ─── ONT
-     │                     │
-     │         ┌── Radio 2.4
-     └── GW ───┤── Radio 5.0
-          │    └── Radio 6.0
-          ├── Pod 1
-          └── Pod 2`}</pre>
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full rounded-sm border border-axon-teal/20 bg-black/30">
+      {edges.map(([from, to], i) => {
+        const a = nodes.find(n => n.id === from);
+        const b = nodes.find(n => n.id === to);
+        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#00D4AA" strokeWidth="1" strokeOpacity="0.4" />;
+      })}
+      {nodes.map(n => (
+        <g key={n.id}>
+          <circle cx={n.x} cy={n.y} r="8" fill={n.color} fillOpacity="0.25" stroke={n.color} strokeWidth="1.5" />
+          <circle cx={n.x} cy={n.y} r="3" fill={n.color} />
+          <text x={n.x} y={n.y + 18} textAnchor="middle" fill="#a1a1aa" fontSize="7" fontFamily="monospace">{n.label}</text>
+        </g>
+      ))}
+      <text x={w / 2} y={h - 4} textAnchor="middle" fill="#3f3f46" fontSize="6" fontFamily="monospace">
+        {clients.length} clients · {meshPods.length} pods · knowledge graph view
+      </text>
+    </svg>
   );
 }
 
-export default function Subscriber360({ ont, showSources, onClose }) {
+function AlgoSection({ phase }) {
+  if (phase === 'people') return null;
+  const algos = getAlgorithmsForScope('ont');
+  const statusColors = { active: 'text-emerald-400', available: 'text-blue-400', 'not-wrapped': 'text-zinc-500' };
+  const statusLabels = { active: 'LIVE', available: 'READY', 'not-wrapped': 'RAW' };
+  return (
+    <div className="border-t border-white/5 px-4 py-3">
+      <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-widest text-zinc-300">
+        Applicable Algorithms ({algos.length})
+      </div>
+      <div className="space-y-1">
+        {algos.map(a => (
+          <div key={a.id} className="flex items-center justify-between rounded-sm bg-white/[0.03] px-2 py-1 font-mono text-[10.5px]">
+            <span className="truncate text-zinc-300">{a.id} {a.name}</span>
+            <span className={`shrink-0 text-[9px] font-bold uppercase ${statusColors[a.status]}`}>{statusLabels[a.status]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentSection({ phase }) {
+  if (phase !== 'agents') return null;
+  const agents = getAgentsForScope();
+  return (
+    <div className="border-t border-white/5 px-4 py-3">
+      <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-widest text-purple-300">
+        AI Agents
+      </div>
+      <div className="space-y-1">
+        {agents.map(a => (
+          <div key={a.id} className="rounded-sm border border-purple-500/10 bg-purple-500/5 px-2 py-1.5">
+            <div className="flex items-center justify-between text-[10.5px]">
+              <span className="font-semibold text-zinc-200">{a.name}</span>
+              <span className={`text-[9px] font-bold uppercase ${a.status === 'prototype' ? 'text-purple-400' : 'text-zinc-500'}`}>
+                {a.status === 'prototype' ? 'PROTO' : 'SLOT'}
+              </span>
+            </div>
+            <div className="text-[9px] text-zinc-500">{a.capability}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Subscriber360({ ont, showSources, phase, onClose }) {
   const home = useHomeNetwork(ont);
   if (!home) return null;
   const { gateway, meshPods, clients } = home;
@@ -94,22 +166,49 @@ export default function Subscriber360({ ont, showSources, onClose }) {
           <Row label="Churn Risk" value="Low" />
         </Section>
 
-        <Section title="Mobile" source="greenwave" missing />
+        <Section title="Mobile (Fixed-Mobile Convergence)" source="greenwave" missing>
+          <div className="space-y-1 text-[10.5px]">
+            <Row label="Mobile Line" value="?" />
+            <Row label="Cell Tower" value="?" />
+            <Row label="Signal (RSRP)" value="?" />
+            <Row label="Handover Events" value="?" />
+            <Row label="Data Usage (30d)" value="?" />
+          </div>
+        </Section>
 
-        <Section title="Inventory" source="inventory" missing />
+        <Section title="Inventory & Lifecycle" source="inventory" missing>
+          <div className="space-y-1 text-[10.5px]">
+            <Row label="Install Date" value="?" />
+            <Row label="Warranty Exp." value="?" />
+            <Row label="Asset Tag" value="?" />
+            <Row label="Last Truck Roll" value="?" />
+            <Row label="Replacement ETA" value="?" />
+          </div>
+        </Section>
+
+        <Section title="CRM & Billing" source="expresse" missing>
+          <div className="space-y-1 text-[10.5px]">
+            <Row label="Billing Status" value="?" />
+            <Row label="MRR" value="?" />
+            <Row label="Contract End" value="?" />
+            <Row label="Support Tier" value="?" />
+          </div>
+        </Section>
+
+        <AlgoSection phase={phase} />
+        <AgentSection phase={phase} />
 
         <Section title="Graph Twin View" source="unified">
-          <GraphAscii />
+          <MiniGraphSVG ont={ont} gateway={gateway} meshPods={meshPods} clients={clients} />
           <div className="mt-1 text-[10.5px] italic text-zinc-400">
-            This is what the knowledge graph looks like — every silo's data
-            linked through reality.
+            Every silo's data linked through reality — the unified knowledge graph.
           </div>
           <div className="mt-2 flex gap-2">
             <button className="flex-1 rounded-sm border border-axon-teal/50 bg-axon-teal/10 px-2 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-axon-teal">
-              🔍 Query Agent
+              Query Agent
             </button>
             <button className="flex-1 rounded-sm border border-axon-blue/50 bg-axon-blue/10 px-2 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-axon-blue">
-              📊 Analytics
+              Analytics
             </button>
           </div>
         </Section>

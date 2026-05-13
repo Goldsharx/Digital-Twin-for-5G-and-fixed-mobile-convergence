@@ -12,6 +12,7 @@ import { CENTRAL_OFFICES } from './data/centralOffices.js';
 import { CAMERA_VIEWS } from './data/constants.js';
 import { useMetroGPON } from './hooks/useGeneratedData.js';
 import { useSimulation } from './hooks/useSimulation.js';
+import { generateCellTowers } from './data/cellTowers.js';
 
 export default function App() {
   const viewerRef = useRef(null);
@@ -24,9 +25,20 @@ export default function App() {
   const [showSubscriber360, setShowSubscriber360] = useState(false);
   const [showSources, setShowSources] = useState(true);
   const [storyStep, setStoryStep] = useState(null); // null when story mode is off
+  const [phase, setPhase] = useState('systems');
 
   // Generate the GPON tree for the currently-focused metro only.
   const { splitters, onts } = useMetroGPON(focusedMetroId);
+
+  // Generate cell towers for the focused metro.
+  const cellTowersRef = useRef({});
+  const cellTowers = useMemo(() => {
+    if (!focusedMetroId) return [];
+    if (!cellTowersRef.current[focusedMetroId]) {
+      cellTowersRef.current[focusedMetroId] = generateCellTowers(focusedMetroId);
+    }
+    return cellTowersRef.current[focusedMetroId];
+  }, [focusedMetroId]);
 
   // Simulation runs only when we have something to simulate.
   const { events } = useSimulation(onts, onts.length > 0, 5000);
@@ -129,6 +141,13 @@ export default function App() {
     [flyTo, handleSelect]
   );
 
+  const handleTowerClick = useCallback(
+    (tower) => {
+      handleSelect({ type: 'tower', id: tower.id, data: tower });
+    },
+    [handleSelect]
+  );
+
   const resetView = useCallback(() => {
     setFocusedMetroId(null);
     setFocusedCOId(null);
@@ -152,6 +171,8 @@ export default function App() {
         focusedCOId={focusedCOId}
         splitters={splitters}
         onts={onts}
+        cellTowers={cellTowers}
+        phase={phase}
         selection={selection}
         onZoomChange={onZoomChange}
         onMetroClick={handleMetroClick}
@@ -161,9 +182,10 @@ export default function App() {
         onSplitterClick={handleSplitterClick}
         onONTClick={handleONTClick}
         onONTDoubleClick={handleONTDoubleClick}
+        onTowerClick={handleTowerClick}
       />
 
-      <StatsBar />
+      <StatsBar phase={phase} setPhase={setPhase} />
 
       <Sidebar
         zoomLevel={zoomLevel}
@@ -197,6 +219,7 @@ export default function App() {
         <DeviceDetail
           selection={selection}
           showSources={showSources}
+          phase={phase}
           onClose={() => setSelection(null)}
           onOpenSubscriber360={() => setShowSubscriber360(true)}
         />
@@ -206,6 +229,7 @@ export default function App() {
         <Subscriber360
           ont={selection.data}
           showSources={showSources}
+          phase={phase}
           onClose={() => setShowSubscriber360(false)}
         />
       )}
