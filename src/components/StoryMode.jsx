@@ -5,9 +5,9 @@ import { generateGPONTree } from '../data/generators.js';
 
 const STEPS = [
   {
-    title: 'The footprint',
+    title: 'AXON Quantum Fiber — The Network',
     narration:
-      'AXON manages Quantum Fiber\'s network across 16 states, serving 1.1 million subscribers. Five core metros. One twin.',
+      '881K subscribers across 16 states. Five core metros. Today this data lives in Orchestrator, CloudCheck, Expresse, Greenwave, and Inventory — five platforms that don\'t talk to each other. The twin connects them.',
     camera: { lat: 39.0, lng: -98.0, height: 8_000_000 },
     action: (ctx) => {
       ctx.setFocusedMetroId(null);
@@ -17,9 +17,9 @@ const STEPS = [
     }
   },
   {
-    title: 'Denver Metro',
+    title: 'Denver Metro — 285K Subscribers',
     narration:
-      'Denver: 285,000 subscribers across 12 central offices. Each CO is a real building serving real homes.',
+      '12 central offices, each a real building. GPON and XGS-PON serving residential and business. The twin knows every CO, every port, every ONT.',
     camera: { lat: 39.74, lng: -104.99, height: 80_000 },
     action: (ctx) => {
       ctx.setFocusedMetroId('denver');
@@ -29,9 +29,9 @@ const STEPS = [
     }
   },
   {
-    title: 'LoDo Central Office',
+    title: 'LoDo CO — The Physical Layer',
     narration:
-      'LoDo CO serves 12,200 subscribers via 192 PON ports. XGS-PON aggregation. Nokia 7360 ISAM FX hardware.',
+      '12,200 subscribers, 192 PON ports, Nokia 7360 ISAM FX. Notice the source badges — every field tagged by which platform owns it. The blue dots are what Orchestrator sees. The grey ? marks are what\'s missing.',
     camera: { lat: 39.7530, lng: -105.0000, height: 4_000 },
     action: (ctx) => {
       ctx.setFocusedMetroId('denver');
@@ -41,9 +41,9 @@ const STEPS = [
     }
   },
   {
-    title: 'GPON splitter',
+    title: 'The Passive Layer — GPON Splitters',
     narration:
-      'Each GPON splitter serves 32 (or 64 with XGS-PON) homes via passive optical fiber. No power. No active electronics. Just light.',
+      'Passive optical splitters — no power, no electronics, just light split 1:64. This is the invisible infrastructure between CO and home. The 50-person DS team has 400+ algorithms that can run at every node in this tree.',
     camera: { lat: 39.7530, lng: -105.0000, height: 1_500 },
     action: (ctx) => {
       ctx.setFocusedMetroId('denver');
@@ -54,9 +54,9 @@ const STEPS = [
     }
   },
   {
-    title: 'A subscriber\'s ONT',
+    title: 'The Demarcation — Q1000K SmartNID',
     narration:
-      'A Q1000K SmartNID — RX power, firmware, plan, status, all live. This is the demarcation between AXON and the home.',
+      'RX power, firmware, plan, distance from CO — all from Orchestrator. But where\'s the mobile line? Where\'s the install date? Those fields live in Greenwave and Inventory. The twin shows exactly what\'s connected and what\'s not.',
     camera: null,
     cameraFromOnt: true,
     action: (ctx) => {
@@ -70,19 +70,17 @@ const STEPS = [
     }
   },
   {
-    title: 'Inside the home — Wi-Fi 7',
+    title: 'Inside the Home — Wi-Fi 7',
     narration:
-      'W1700K Wi-Fi 7 router with mesh pods. Tri-band MLO. 6 GHz at 320 MHz. Connected devices: phones, TVs, IoT — all visible.',
+      'W1700K router with MediaTek Filogic 680. Tri-band MLO, 6 GHz at 320 MHz channel width. Mesh pods, client devices, QoE scores, self-healing events — all from CloudCheck. This is AN Level 2 today.',
     camera: null,
     cameraFromOnt: true,
-    action: () => {
-      // selection already set on previous step
-    }
+    action: () => {}
   },
   {
-    title: 'Subscriber 360°',
+    title: 'Subscriber 360° — The Silo Problem',
     narration:
-      'Today this data lives in 5 separate platforms. The grey ? fields are the data that\'s missing — because the silos aren\'t talking yet.',
+      'Five platforms, one subscriber. The grey sections are the gaps — Mobile from Greenwave, Inventory lifecycle, CRM billing. Today, a support call means opening 3-4 tools. The twin makes it one view, queryable by any AI agent.',
     camera: null,
     cameraFromOnt: true,
     action: (ctx) => {
@@ -90,9 +88,9 @@ const STEPS = [
     }
   },
   {
-    title: 'The twin is reality',
+    title: 'The Path to AN Level 4',
     narration:
-      'Tomorrow, every field is filled in by the graph twin. MCP makes it queryable by any agent. This is what AXON is building.',
+      'Every ? becomes a real field when the graph connects the platforms. 50 data scientists\' algorithms slot in at every layer. 5 AI engineers build agents that diagnose, heal, and optimize autonomously. That\'s AN Level 4 — intent-based, self-optimizing. That\'s what AXON is building.',
     camera: { lat: 39.0, lng: -98.0, height: 8_000_000 },
     action: (ctx) => {
       ctx.setShowSubscriber360(false);

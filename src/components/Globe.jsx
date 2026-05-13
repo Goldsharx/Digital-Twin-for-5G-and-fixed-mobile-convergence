@@ -335,6 +335,50 @@ function HomeNetworkLayer({ visible, ont }) {
   );
 }
 
+function PhaseOverlay({ phase, visible, metroId }) {
+  if (!visible || phase === 'people' || !metroId) return null;
+  const cos = CENTRAL_OFFICES.filter((c) => c.metroId === metroId);
+  if (cos.length < 2) return null;
+
+  if (phase === 'systems') {
+    const pairs = [];
+    for (let i = 0; i < cos.length - 1; i++) {
+      pairs.push([cos[i], cos[i + 1]]);
+    }
+    return pairs.map(([a, b], i) => (
+      <Entity key={`dataflow-${i}`}>
+        <PolylineGraphics
+          positions={Cartesian3.fromDegreesArray([a.lng, a.lat, b.lng, b.lat])}
+          width={2}
+          material={new PolylineGlowMaterialProperty({
+            glowPower: 0.3,
+            color: Color.fromCssColorString('#3b82f6').withAlpha(0.5)
+          })}
+          clampToGround={true}
+        />
+      </Entity>
+    ));
+  }
+
+  if (phase === 'agents') {
+    return cos.map((co) => (
+      <Entity key={`agent-scope-${co.id}`} position={Cartesian3.fromDegrees(co.lng, co.lat, 0)}>
+        <EllipseGraphics
+          semiMajorAxis={1200}
+          semiMinorAxis={1200}
+          material={Color.fromCssColorString('#8b5cf6').withAlpha(0.06)}
+          outline={true}
+          outlineColor={Color.fromCssColorString('#8b5cf6').withAlpha(0.25)}
+          outlineWidth={1.5}
+          heightReference={HeightReference.CLAMP_TO_GROUND}
+        />
+      </Entity>
+    ));
+  }
+
+  return null;
+}
+
 export default function Globe({
   viewerRef,
   zoomLevel,
@@ -400,15 +444,16 @@ export default function Globe({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // What to show at each zoom level
-  const showMetros = zoomLevel === 'planet' || zoomLevel === 'metro';
-  const showCOs = zoomLevel === 'metro' || zoomLevel === 'city' || (focusedMetroId && zoomLevel === 'neighborhood');
-  const showCOTrunks = focusedMetroId && (zoomLevel === 'metro' || zoomLevel === 'city');
-  const showSplitters = focusedMetroId && (zoomLevel === 'city' || zoomLevel === 'neighborhood' || zoomLevel === 'building');
-  const showONTs = focusedMetroId && (zoomLevel === 'neighborhood' || zoomLevel === 'building');
-  const showFiber = focusedMetroId && (zoomLevel === 'city' || zoomLevel === 'neighborhood' || zoomLevel === 'building');
-  const showHomeNetwork = zoomLevel === 'building' && selection?.type === 'ont';
-  const showCellTowers = focusedMetroId && (zoomLevel === 'city' || zoomLevel === 'neighborhood');
+  // What to show at each zoom level (planet > metro > city > district > neighborhood > street > building)
+  const zl = zoomLevel;
+  const showMetros = zl === 'planet' || zl === 'metro';
+  const showCOs = zl === 'metro' || zl === 'city' || (focusedMetroId && (zl === 'district' || zl === 'neighborhood'));
+  const showCOTrunks = focusedMetroId && (zl === 'metro' || zl === 'city');
+  const showSplitters = focusedMetroId && (zl === 'city' || zl === 'district' || zl === 'neighborhood' || zl === 'street' || zl === 'building');
+  const showONTs = focusedMetroId && (zl === 'district' || zl === 'neighborhood' || zl === 'street' || zl === 'building');
+  const showFiber = focusedMetroId && (zl === 'city' || zl === 'district' || zl === 'neighborhood' || zl === 'street' || zl === 'building');
+  const showHomeNetwork = (zl === 'street' || zl === 'building') && selection?.type === 'ont';
+  const showCellTowers = focusedMetroId && (zl === 'city' || zl === 'district' || zl === 'neighborhood');
 
   const selectedONTId = selection?.type === 'ont' ? selection.id : null;
   const selectedCOId = selection?.type === 'co' ? selection.id : null;
@@ -481,6 +526,11 @@ export default function Globe({
         showCoverage={phase !== 'people'}
         onClick={onTowerClick}
         selectedId={selectedTowerId}
+      />
+      <PhaseOverlay
+        phase={phase}
+        visible={focusedMetroId && (zl === 'city' || zl === 'district' || zl === 'neighborhood')}
+        metroId={focusedMetroId}
       />
       {showHomeNetwork && selection?.data && (
         <HomeNetworkLayer visible ont={selection.data} />

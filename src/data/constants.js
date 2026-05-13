@@ -38,6 +38,17 @@ export function heightToZoomLevel(height) {
   if (height > 5_000_000) return 'planet';
   if (height > 200_000) return 'metro';
   if (height > 20_000) return 'city';
+  if (height > 5_000) return 'district';
   if (height > 2_000) return 'neighborhood';
+  if (height > 200) return 'street';
   return 'building';
 }
+
+export const AN_LEVELS = {
+  0: { label: 'Manual', desc: 'Manual infrastructure management' },
+  1: { label: 'Assisted', desc: 'Tools assist human decisions' },
+  2: { label: 'Partial', desc: 'Some closed-loop automation' },
+  3: { label: 'Conditional', desc: 'Context-aware automation' },
+  4: { label: 'High', desc: 'Intent-based, self-optimizing' },
+  5: { label: 'Full', desc: 'Zero-touch, self-evolving' }
+};
