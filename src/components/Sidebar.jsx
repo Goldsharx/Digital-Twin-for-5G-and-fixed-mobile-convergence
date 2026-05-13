@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { METROS, METRO_AGGREGATE } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { PLATFORMS } from '../data/constants.js';
-import { interpolateGrowth, getTotalSubscribers, getActiveMetroCount } from '../data/timeline.js';
+import { interpolateGrowth, getTotalSubscribers, getActiveMetroCount, getActiveMetroIds } from '../data/timeline.js';
+import ANLevelGauge from './ANLevelGauge.jsx';
 
 function fmt(n) {
   return n.toLocaleString('en-US');
@@ -73,6 +74,12 @@ function PlatformList({ showSources, onToggleSources }) {
   );
 }
 
+const ROLES = [
+  { id: 'noc', label: 'NOC', color: 'border-red-500/50 bg-red-500/10 text-red-400' },
+  { id: 'executive', label: 'Exec', color: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400' },
+  { id: 'consumer', label: 'CX', color: 'border-blue-500/50 bg-blue-500/10 text-blue-400' },
+];
+
 export default function Sidebar({
   zoomLevel,
   focusedMetro,
@@ -80,10 +87,15 @@ export default function Sidebar({
   onts,
   showSources,
   year,
+  role,
+  onRoleChange,
   onToggleSources,
   onReset,
   onStartStory,
-  onToggleKPIs
+  onToggleKPIs,
+  onToggleArchitecture,
+  onToggleNeurosquads,
+  onToggleMCP
 }) {
   // Compute health buckets for the current scope.
   const scopeCounts = useMemo(() => {
@@ -110,11 +122,26 @@ export default function Sidebar({
   return (
     <div className="pointer-events-auto absolute left-4 top-[10rem] bottom-[5.5rem] z-30 w-[19rem] overflow-y-auto pr-1">
       <div className="glass space-y-4 rounded-md p-4">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-            Zoom Scope
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Zoom Scope
+            </div>
+            <div className="mt-0.5 font-mono text-sm capitalize text-axon-teal">{zoomLevel}</div>
           </div>
-          <div className="mt-0.5 font-mono text-sm capitalize text-axon-teal">{zoomLevel}</div>
+          <div className="flex gap-1">
+            {ROLES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => onRoleChange?.(r.id)}
+                className={`rounded-sm border px-1.5 py-0.5 text-[9px] font-semibold transition ${
+                  role === r.id ? r.color : 'border-white/10 bg-white/5 text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
@@ -145,6 +172,8 @@ export default function Sidebar({
             );
           })() : (() => {
             const totalSubs = getTotalSubscribers(year);
+            const activeIds = getActiveMetroIds(year);
+            const activeCOs = METROS.filter((m) => activeIds.includes(m.id)).reduce((sum, m) => sum + (m.centralOffices || 0), 0);
             return (
               <>
                 <div className="text-base font-semibold">All Metros · Quantum Fiber Footprint</div>
@@ -152,7 +181,7 @@ export default function Sidebar({
                 <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px] text-zinc-200">
                   <div>Subscribers <span className="text-white">{fmt(totalSubs)}</span></div>
                   <div>Homes Passed <span className="text-white">{fmt(Math.round(totalSubs * 2.88))}</span></div>
-                  <div>COs <span className="text-white">{METRO_AGGREGATE.centralOffices}</span></div>
+                  <div>COs <span className="text-white">{activeCOs}</span></div>
                   <div>Metros <span className="text-white">{getActiveMetroCount(year)}</span></div>
                 </div>
               </>
@@ -176,43 +205,93 @@ export default function Sidebar({
           </div>
         </div>
 
-        <div>
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-            Top Issues
+        <ANLevelGauge year={year} />
+
+        {role !== 'consumer' && (
+          <div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              {role === 'executive' ? 'Business Alerts' : 'Top Issues'}
+            </div>
+            <ul className="space-y-1.5 text-[11px]">
+              {issues.map((issue) => (
+                <li key={issue.id} className="flex gap-2">
+                  <span className={`mt-0.5 dot dot-${issue.severity}`} />
+                  <div>
+                    <div className="font-semibold text-zinc-100">{issue.title}</div>
+                    <div className="text-[10px] text-zinc-400">{issue.detail}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="space-y-1.5 text-[11px]">
-            {issues.map((issue) => (
-              <li key={issue.id} className="flex gap-2">
-                <span className={`mt-0.5 dot dot-${issue.severity}`} />
-                <div>
-                  <div className="font-semibold text-zinc-100">{issue.title}</div>
-                  <div className="text-[10px] text-zinc-400">{issue.detail}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+        )}
 
-        <PlatformList showSources={showSources} onToggleSources={onToggleSources} />
+        {role === 'consumer' && (
+          <div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Customer Experience
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Avg Speed Test</span>
+                <span className="font-mono text-[11px] text-emerald-400">842 Mbps</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Wi-Fi Score</span>
+                <span className="font-mono text-[11px] text-axon-teal">94/100</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">App Satisfaction</span>
+                <span className="font-mono text-[11px] text-blue-400">4.6★</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Support CSAT</span>
+                <span className="font-mono text-[11px] text-emerald-400">87%</span>
+              </div>
+            </div>
+          </div>
+        )}
 
-        <div className="flex gap-2 pt-1">
+        {role !== 'consumer' && (
+          <PlatformList showSources={showSources} onToggleSources={onToggleSources} />
+        )}
+
+        <div className="grid grid-cols-3 gap-1.5 pt-1">
           <button
             onClick={onReset}
-            className="flex-1 rounded-sm border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-medium text-zinc-200 transition hover:bg-white/10"
+            className="rounded-sm border border-white/15 bg-white/5 px-2 py-1.5 text-[10px] font-medium text-zinc-200 transition hover:bg-white/10"
           >
             Reset
           </button>
           <button
             onClick={onStartStory}
-            className="flex-1 rounded-sm border border-axon-blue/60 bg-axon-blue/15 px-2 py-1.5 text-[11px] font-medium text-axon-blue transition hover:bg-axon-blue/30"
+            className="rounded-sm border border-axon-blue/60 bg-axon-blue/15 px-2 py-1.5 text-[10px] font-medium text-axon-blue transition hover:bg-axon-blue/30"
           >
             Story
           </button>
           <button
             onClick={onToggleKPIs}
-            className="flex-1 rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-medium text-emerald-400 transition hover:bg-emerald-500/20"
+            className="rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-2 py-1.5 text-[10px] font-medium text-emerald-400 transition hover:bg-emerald-500/20"
           >
             KPIs
+          </button>
+          <button
+            onClick={onToggleArchitecture}
+            className="rounded-sm border border-purple-500/50 bg-purple-500/10 px-2 py-1.5 text-[10px] font-medium text-purple-400 transition hover:bg-purple-500/20"
+          >
+            Arch
+          </button>
+          <button
+            onClick={onToggleNeurosquads}
+            className="rounded-sm border border-violet-500/50 bg-violet-500/10 px-2 py-1.5 text-[10px] font-medium text-violet-400 transition hover:bg-violet-500/20"
+          >
+            Squads
+          </button>
+          <button
+            onClick={onToggleMCP}
+            className="rounded-sm border border-cyan-500/50 bg-cyan-500/10 px-2 py-1.5 text-[10px] font-medium text-cyan-400 transition hover:bg-cyan-500/20"
+          >
+            MCP
           </button>
         </div>
       </div>
@@ -239,6 +318,12 @@ function buildTopIssues({ focusedMetro, focusedCO, onts }) {
     if (alarms > 0) out.push({ id: 'co-alarms', severity: 'alarm', title: `${alarms} ONTs in alarm`, detail: 'High optical loss / signal failure' });
     if (degraded > 0) out.push({ id: 'co-degraded', severity: 'degraded', title: `${degraded} ONTs degraded`, detail: 'RX power below threshold' });
     if (outdated > 0) out.push({ id: 'co-fw', severity: 'degraded', title: `${outdated} ONTs on stale firmware`, detail: 'Schedule rolling upgrade' });
+    if (alarms > 0 && outdated > 0) {
+      out.push({ id: 'co-corr', severity: 'alarm', title: 'Correlation: firmware → alarm', detail: `${Math.min(alarms, outdated)} alarms on stale firmware ONTs — root cause likely firmware bug` });
+    }
+    if (alarms > 3) {
+      out.push({ id: 'co-cluster', severity: 'alarm', title: 'Alarm cluster detected', detail: 'Multiple ONTs on same splitter — check feeder fiber or splitter cabinet' });
+    }
     if (out.length === 0) out.push({ id: 'co-ok', severity: 'healthy', title: 'No active incidents', detail: `${ontsHere.length} ONTs healthy` });
     return out;
   }
@@ -260,7 +345,7 @@ function buildTopIssues({ focusedMetro, focusedCO, onts }) {
     return out;
   }
 
-  // Planet level — surface metro-level issues
+  // Planet level — surface metro-level issues with correlation reasoning
   METROS.filter((m) => m.status !== 'healthy').forEach((m) => {
     out.push({
       id: `metro-${m.id}`,
@@ -269,6 +354,24 @@ function buildTopIssues({ focusedMetro, focusedCO, onts }) {
       detail: m.status === 'alarm' ? 'Multiple COs reporting incidents' : 'Elevated regional alarms'
     });
   });
+  const alarmMetros = METROS.filter((m) => m.status === 'alarm');
+  const degradedMetros = METROS.filter((m) => m.status === 'degraded');
+  if (alarmMetros.length > 1) {
+    out.push({
+      id: 'corr-multi-alarm',
+      severity: 'alarm',
+      title: 'Cross-metro correlation detected',
+      detail: `${alarmMetros.length} metros in alarm — likely upstream feeder or backbone event`
+    });
+  }
+  if (degradedMetros.length >= 2) {
+    out.push({
+      id: 'corr-degraded-pattern',
+      severity: 'degraded',
+      title: 'Regional degradation pattern',
+      detail: `${degradedMetros.length} metros degraded — check shared OLT firmware or weather event`
+    });
+  }
   if (out.length === 0) out.push({ id: 'all-ok', severity: 'healthy', title: 'Network nominal', detail: 'No regional incidents' });
   return out;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
-import { METRO_AGGREGATE } from '../data/metros.js';
-import { getTotalSubscribers, getActiveMetroCount } from '../data/timeline.js';
+import { METROS } from '../data/metros.js';
+import { getTotalSubscribers, getActiveMetroCount, getActiveMetroIds } from '../data/timeline.js';
 import PhaseToggle from './PhaseToggle.jsx';
 
 function fmt(n) {
@@ -11,6 +11,8 @@ export default function StatsBar({ phase, setPhase, year }) {
   const subs = getTotalSubscribers(year);
   const isPast = year < 2026;
   const isFuture = year > 2026;
+  const activeIds = getActiveMetroIds(year);
+  const activeCOs = METROS.filter((m) => activeIds.includes(m.id)).reduce((sum, m) => sum + (m.centralOffices || 0), 0);
 
   return (
     <>
@@ -50,7 +52,7 @@ export default function StatsBar({ phase, setPhase, year }) {
             <Stat label="Subscribers" value={fmt(subs)} highlight={isFuture} />
             <Stat label="Homes Passed" value={fmt(Math.round(subs * 2.88))} highlight={isFuture} />
             <Stat label="Metros" value={getActiveMetroCount(year)} highlight={isFuture} />
-            <Stat label="Central Offices" value={METRO_AGGREGATE.centralOffices} />
+            <Stat label="Central Offices" value={activeCOs} highlight={isFuture} />
             <Stat label="States" value={16} />
           </div>
         </div>

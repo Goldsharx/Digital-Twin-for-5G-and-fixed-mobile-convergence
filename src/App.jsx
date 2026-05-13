@@ -10,6 +10,9 @@ import EventTicker from './components/EventTicker.jsx';
 import StoryMode from './components/StoryMode.jsx';
 import TimeSlider from './components/TimeSlider.jsx';
 import KPIPanel from './components/KPIPanel.jsx';
+import ArchitecturePanel from './components/ArchitecturePanel.jsx';
+import NeurosquadPanel from './components/NeurosquadPanel.jsx';
+import MCPPanel from './components/MCPPanel.jsx';
 import { METROS } from './data/metros.js';
 import { CENTRAL_OFFICES } from './data/centralOffices.js';
 import { CAMERA_VIEWS } from './data/constants.js';
@@ -33,7 +36,12 @@ export default function App() {
   const [timelineYear, setTimelineYear] = useState(2026);
   const [timelinePlaying, setTimelinePlaying] = useState(false);
   const [showKPIs, setShowKPIs] = useState(false);
+  const [showArchitecture, setShowArchitecture] = useState(false);
+  const [showNeurosquads, setShowNeurosquads] = useState(false);
+  const [showMCP, setShowMCP] = useState(false);
+  const [showAccounts, setShowAccounts] = useState(false);
   const [activeScenario, setActiveScenario] = useState(null);
+  const [role, setRole] = useState('noc');
 
   const projectedMetros = useMemo(() => {
     if (!activeScenario) return [];
@@ -193,6 +201,7 @@ export default function App() {
         selection={selection}
         timelineYear={timelineYear}
         projectedMetros={projectedMetros}
+        showAccounts={showAccounts}
         onZoomChange={onZoomChange}
         onMetroClick={handleMetroClick}
         onMetroDoubleClick={handleMetroDoubleClick}
@@ -202,6 +211,7 @@ export default function App() {
         onONTClick={handleONTClick}
         onONTDoubleClick={handleONTDoubleClick}
         onTowerClick={handleTowerClick}
+        onAccountClick={(acct) => handleSelect({ type: 'account', id: acct.id, data: acct })}
       />
 
       <StatsBar phase={phase} setPhase={setPhase} year={timelineYear} />
@@ -213,10 +223,15 @@ export default function App() {
         onts={onts}
         showSources={showSources}
         year={timelineYear}
+        role={role}
+        onRoleChange={setRole}
         onToggleSources={() => setShowSources((s) => !s)}
         onReset={resetView}
         onStartStory={() => setStoryStep(0)}
         onToggleKPIs={() => setShowKPIs((s) => !s)}
+        onToggleArchitecture={() => setShowArchitecture((s) => !s)}
+        onToggleNeurosquads={() => setShowNeurosquads((s) => !s)}
+        onToggleMCP={() => setShowMCP((s) => !s)}
       />
 
       <Breadcrumb
@@ -272,6 +287,24 @@ export default function App() {
         onClose={() => setShowKPIs(false)}
         activeScenario={activeScenario}
         setActiveScenario={setActiveScenario}
+        onToggleAccounts={() => setShowAccounts((s) => !s)}
+      />
+
+      <ArchitecturePanel
+        visible={showArchitecture}
+        onClose={() => setShowArchitecture(false)}
+        year={timelineYear}
+      />
+
+      <NeurosquadPanel
+        visible={showNeurosquads}
+        onClose={() => setShowNeurosquads(false)}
+        phase={phase}
+      />
+
+      <MCPPanel
+        visible={showMCP}
+        onClose={() => setShowMCP(false)}
       />
 
       {storyStep !== null && (

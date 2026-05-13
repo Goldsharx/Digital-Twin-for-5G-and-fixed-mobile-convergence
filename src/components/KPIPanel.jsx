@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { KPIS, KPI_CATEGORIES, SCENARIOS } from '../data/scenarios.js';
+import { ANCHOR_ACCOUNTS, TOTAL_REVENUE, TOTAL_TARGET } from '../data/anchorAccounts.js';
 
 function KPICard({ kpi }) {
   const cat = KPI_CATEGORIES[kpi.category];
@@ -41,7 +42,44 @@ function ScenarioCard({ scenario, selected, onClick }) {
   );
 }
 
-export default function KPIPanel({ year, visible, onClose, activeScenario, setActiveScenario }) {
+function AccountCard({ account }) {
+  const pct = Math.round((account.revenue / account.target) * 100);
+  const statusColors = { growing: 'text-emerald-400', expanding: 'text-blue-400', new: 'text-purple-400' };
+  return (
+    <div className="rounded-sm border border-white/5 bg-white/[0.02] px-2.5 py-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-zinc-100">{account.name}</span>
+        <span className={`text-[9px] font-semibold uppercase ${statusColors[account.status] || 'text-zinc-400'}`}>
+          {account.status}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[9px] text-zinc-500">
+        <span>{account.region}</span>
+        <span>{account.subscribers} subs</span>
+      </div>
+      <div className="mt-1.5">
+        <div className="flex items-center justify-between text-[10px]">
+          <span className="font-mono text-emerald-400">${(account.revenue / 1_000_000).toFixed(0)}M</span>
+          <span className="text-zinc-500">→</span>
+          <span className="font-mono text-axon-teal">${(account.target / 1_000_000).toFixed(0)}M</span>
+        </div>
+        <div className="mt-1 h-1.5 w-full rounded-full bg-white/5">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-axon-teal"
+            style={{ width: `${Math.min(pct, 100)}%` }}
+          />
+        </div>
+        <div className="mt-0.5 text-right text-[8px] text-zinc-500">{pct}% of target</div>
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[9px] text-zinc-500">
+        <span>{account.platform}</span>
+        <span>{account.cloud}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function KPIPanel({ year, visible, onClose, activeScenario, setActiveScenario, onToggleAccounts }) {
   const [tab, setTab] = useState('kpis');
 
   if (!visible) return null;
@@ -69,6 +107,7 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
           {[
             { id: 'kpis', label: 'KPIs' },
             { id: 'scenarios', label: 'Scenarios' },
+            { id: 'accounts', label: 'Accounts' },
           ].map((t) => (
             <button
               key={t.id}
@@ -127,6 +166,38 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
                   {SCENARIOS.find((s) => s.id === activeScenario)?.description}
                 </div>
               )}
+            </div>
+          )}
+
+          {tab === 'accounts' && (
+            <div className="space-y-1.5">
+              <button
+                onClick={() => onToggleAccounts?.()}
+                className="w-full rounded-sm border border-axon-teal/40 bg-axon-teal/10 px-2 py-1.5 text-[10px] font-semibold text-axon-teal transition hover:bg-axon-teal/20"
+              >
+                Toggle Accounts on Globe
+              </button>
+              {ANCHOR_ACCOUNTS.map((acct) => (
+                <AccountCard key={acct.id} account={acct} />
+              ))}
+              <div className="mt-2 rounded-sm border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[9px] uppercase tracking-wider text-zinc-400">Current ARR</div>
+                    <div className="text-base font-bold text-emerald-400">${(TOTAL_REVENUE / 1_000_000).toFixed(0)}M</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[9px] uppercase tracking-wider text-zinc-400">Target ARR</div>
+                    <div className="text-base font-bold text-axon-teal">${(TOTAL_TARGET / 1_000_000).toFixed(0)}M</div>
+                  </div>
+                </div>
+                <div className="mt-1.5 h-2 w-full rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-axon-teal"
+                    style={{ width: `${Math.round((TOTAL_REVENUE / TOTAL_TARGET) * 100)}%` }}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

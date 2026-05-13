@@ -60,3 +60,7 @@ export function getMetroLaunchYear(metroId) {
 export function getActiveMetroCount(year) {
   return Object.keys(METRO_GROWTH).filter((id) => year >= getMetroLaunchYear(id)).length;
 }
+
+export function getActiveMetroIds(year) {
+  return Object.keys(METRO_GROWTH).filter((id) => year >= getMetroLaunchYear(id));
+}
