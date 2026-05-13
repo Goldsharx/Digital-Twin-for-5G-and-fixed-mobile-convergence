@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Viewer,
   Entity,
@@ -356,17 +356,16 @@ export default function Globe({
   onONTDoubleClick,
   onTowerClick
 }) {
-  const innerViewerRef = useRef(null);
   const cameraHandlerRef = useRef(null);
+  const initializedRef = useRef(false);
 
-  // Wire up viewer once mounted.
-  useEffect(() => {
-    const v = innerViewerRef.current?.cesiumElement;
-    if (!v) return;
+  const viewerCallbackRef = useCallback((ref) => {
+    const v = ref?.cesiumElement;
+    if (!v || initializedRef.current) return;
+    initializedRef.current = true;
 
     viewerRef.current = v;
 
-    // Lock down UI chrome we don't want.
     v.scene.skyAtmosphere.show = true;
     v.scene.fog.enabled = true;
     v.scene.fog.density = 0.0002;
@@ -376,13 +375,11 @@ export default function Globe({
     v.scene.requestRenderMode = true;
     v.scene.maximumRenderTimeChange = 1.5;
 
-    // Set initial camera (whole US).
     v.camera.flyTo({
       destination: Cartesian3.fromDegrees(-98, 39, 8_000_000),
       duration: 0
     });
 
-    // Optionally load OSM buildings at high zoom — only attempt if Ion token is present.
     if (Ion.defaultAccessToken && Ion.defaultAccessToken.length > 20) {
       Cesium3DTileset.fromIonAssetId(96188)
         .then((tileset) => {
@@ -390,25 +387,16 @@ export default function Globe({
           tileset.maximumScreenSpaceError = 24;
           v.scene.primitives.add(tileset);
         })
-        .catch(() => {
-          // Asset failure is non-fatal — the demo still works without buildings.
-        });
+        .catch(() => {});
     }
 
-    // Camera change listener for zoom level.
     const handleCameraChanged = () => {
       const h = v.camera.positionCartographic.height;
       onZoomChange(heightToZoomLevel(h), h);
     };
     v.camera.percentageChanged = 0.05;
     cameraHandlerRef.current = v.camera.changed.addEventListener(handleCameraChanged);
-
-    // Initial zoom emission.
     handleCameraChanged();
-
-    return () => {
-      cameraHandlerRef.current?.();
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -439,7 +427,7 @@ export default function Globe({
 
   return (
     <Viewer
-      ref={innerViewerRef}
+      ref={viewerCallbackRef}
       full
       animation={false}
       timeline={false}

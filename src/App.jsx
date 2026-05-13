@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Cartesian3 } from 'cesium';
 import Globe from './components/Globe.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import StatsBar from './components/StatsBar.jsx';
@@ -55,20 +56,6 @@ export default function App() {
   const flyTo = useCallback((lat, lng, height, durationSec = 2.0) => {
     const v = viewerRef.current;
     if (!v) return;
-    const { Cartesian3 } = window.Cesium || {};
-    if (!Cartesian3) {
-      // Resium re-exports Cesium so window.Cesium may be undefined; use the
-      // viewer's own Cesium reference instead.
-      v.camera.flyTo({
-        destination: v.scene.globe.ellipsoid.cartographicToCartesian({
-          longitude: (lng * Math.PI) / 180,
-          latitude: (lat * Math.PI) / 180,
-          height
-        }),
-        duration: durationSec
-      });
-      return;
-    }
     v.camera.flyTo({
       destination: Cartesian3.fromDegrees(lng, lat, height),
       duration: durationSec
