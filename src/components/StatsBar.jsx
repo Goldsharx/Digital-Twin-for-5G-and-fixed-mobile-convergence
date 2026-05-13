@@ -1,6 +1,6 @@
 import React from 'react';
 import { METRO_AGGREGATE } from '../data/metros.js';
-import { getTotalSubscribers } from '../data/timeline.js';
+import { getTotalSubscribers, getActiveMetroCount } from '../data/timeline.js';
 import PhaseToggle from './PhaseToggle.jsx';
 
 function fmt(n) {
@@ -44,12 +44,12 @@ export default function StatsBar({ phase, setPhase, year }) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute right-4 top-4 z-20">
-        <div className="glass rounded-md px-4 py-2.5">
+      <div className="pointer-events-none absolute bottom-[4.5rem] left-1/2 z-20 -translate-x-1/2">
+        <div className="glass rounded-md px-4 py-2">
           <div className="flex gap-5 font-mono text-xs">
             <Stat label="Subscribers" value={fmt(subs)} highlight={isFuture} />
-            <Stat label="Homes Passed" value={fmt(Math.round(subs * 2.88))} />
-            <Stat label="Metros" value={METRO_AGGREGATE.metros} />
+            <Stat label="Homes Passed" value={fmt(Math.round(subs * 2.88))} highlight={isFuture} />
+            <Stat label="Metros" value={getActiveMetroCount(year)} highlight={isFuture} />
             <Stat label="Central Offices" value={METRO_AGGREGATE.centralOffices} />
             <Stat label="States" value={16} />
           </div>

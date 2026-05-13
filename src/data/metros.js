@@ -58,6 +58,90 @@ export const METROS = [
     centralOffices: 5,
     status: 'alarm',
     topTier: '2 Gbps'
+  },
+  {
+    id: 'phoenix',
+    name: 'Phoenix Metro',
+    state: 'AZ',
+    lat: 33.4484,
+    lng: -112.0740,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 6,
+    status: 'healthy',
+    topTier: '8 Gbps'
+  },
+  {
+    id: 'portland',
+    name: 'Portland Metro',
+    state: 'OR',
+    lat: 45.5152,
+    lng: -122.6784,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 5,
+    status: 'healthy',
+    topTier: '5 Gbps'
+  },
+  {
+    id: 'dallas',
+    name: 'Dallas-Fort Worth Metro',
+    state: 'TX',
+    lat: 32.7767,
+    lng: -96.7970,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 8,
+    status: 'healthy',
+    topTier: '8 Gbps'
+  },
+  {
+    id: 'kansas-city',
+    name: 'Kansas City Metro',
+    state: 'MO',
+    lat: 39.0997,
+    lng: -94.5786,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 4,
+    status: 'healthy',
+    topTier: '5 Gbps'
+  },
+  {
+    id: 'austin',
+    name: 'Austin Metro',
+    state: 'TX',
+    lat: 30.2672,
+    lng: -97.7431,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 4,
+    status: 'healthy',
+    topTier: '8 Gbps'
+  },
+  {
+    id: 'las-vegas',
+    name: 'Las Vegas Metro',
+    state: 'NV',
+    lat: 36.1699,
+    lng: -115.1398,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 5,
+    status: 'healthy',
+    topTier: '5 Gbps'
+  },
+  {
+    id: 'san-antonio',
+    name: 'San Antonio Metro',
+    state: 'TX',
+    lat: 29.4241,
+    lng: -98.4936,
+    subscriberCount: 0,
+    homesPassed: 0,
+    centralOffices: 4,
+    status: 'healthy',
+    topTier: '5 Gbps'
   }
 ];
 

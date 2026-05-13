@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { METROS, METRO_AGGREGATE } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { PLATFORMS } from '../data/constants.js';
-import { interpolateGrowth, getTotalSubscribers } from '../data/timeline.js';
+import { interpolateGrowth, getTotalSubscribers, getActiveMetroCount } from '../data/timeline.js';
 
 function fmt(n) {
   return n.toLocaleString('en-US');
@@ -108,7 +108,7 @@ export default function Sidebar({
   const issues = useMemo(() => buildTopIssues({ focusedMetro, focusedCO, onts }), [focusedMetro, focusedCO, onts]);
 
   return (
-    <div className="pointer-events-auto absolute left-4 top-[7.5rem] bottom-[5.5rem] z-30 w-[19rem] overflow-y-auto pr-1">
+    <div className="pointer-events-auto absolute left-4 top-[10rem] bottom-[5.5rem] z-30 w-[19rem] overflow-y-auto pr-1">
       <div className="glass space-y-4 rounded-md p-4">
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
@@ -153,7 +153,7 @@ export default function Sidebar({
                   <div>Subscribers <span className="text-white">{fmt(totalSubs)}</span></div>
                   <div>Homes Passed <span className="text-white">{fmt(Math.round(totalSubs * 2.88))}</span></div>
                   <div>COs <span className="text-white">{METRO_AGGREGATE.centralOffices}</span></div>
-                  <div>Metros <span className="text-white">{METRO_AGGREGATE.metros}</span></div>
+                  <div>Metros <span className="text-white">{getActiveMetroCount(year)}</span></div>
                 </div>
               </>
             );

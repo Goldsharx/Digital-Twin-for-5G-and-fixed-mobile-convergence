@@ -25,57 +25,53 @@ import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { STATUS_COLORS, heightToZoomLevel } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
-import { METRO_GROWTH } from '../data/timeline.js';
+import { getMetroLaunchYear } from '../data/timeline.js';
 import CellTowerLayer from './CellTowerLayer.jsx';
 
 function statusColor(status) {
   return Color.fromCssColorString(STATUS_COLORS[status]?.hex || '#9ca3af');
 }
 
-function getMetroLaunchYear(metroId) {
-  const curve = METRO_GROWTH[metroId];
-  if (!curve) return 2019;
-  return Math.min(...Object.keys(curve).map(Number));
-}
-
 function MetroLayer({ visible, onClick, onDoubleClick, timelineYear }) {
   if (!visible) return null;
   return METROS.map((m) => {
     const launchYear = getMetroLaunchYear(m.id);
-    if (timelineYear < launchYear) return null;
-    const sizePx = 14 + Math.min(18, Math.round(m.subscriberCount / 18_000));
-    const isNewlyLaunched = timelineYear - launchYear < 1;
+    const isActive = timelineYear >= launchYear;
+    const isNewlyLaunched = isActive && timelineYear - launchYear < 1;
+    const isFuture = !isActive;
+    const alpha = isFuture ? 0.45 : 1.0;
+    const sizePx = isFuture ? 12 : 14 + Math.min(18, Math.round(m.subscriberCount / 18_000));
     return (
       <Entity
         key={m.id}
         position={Cartesian3.fromDegrees(m.lng, m.lat, 0)}
-        onClick={() => onClick?.(m)}
-        onDoubleClick={() => onDoubleClick?.(m)}
+        onClick={() => isActive && onClick?.(m)}
+        onDoubleClick={() => isActive && onDoubleClick?.(m)}
         name={m.name}
       >
         <PointGraphics
-          pixelSize={isNewlyLaunched ? sizePx * 0.7 : sizePx}
-          color={statusColor(m.status)}
-          outlineColor={isNewlyLaunched ? Color.fromCssColorString('#22c55e') : Color.WHITE}
-          outlineWidth={isNewlyLaunched ? 3 : 2}
+          pixelSize={isNewlyLaunched ? sizePx * 1.2 : sizePx}
+          color={isFuture ? Color.fromCssColorString('#8b5cf6').withAlpha(0.25) : statusColor(m.status)}
+          outlineColor={isNewlyLaunched ? Color.fromCssColorString('#22c55e') : isFuture ? Color.fromCssColorString('#8b5cf6').withAlpha(0.3) : Color.WHITE}
+          outlineWidth={isNewlyLaunched ? 3 : isFuture ? 1 : 2}
           heightReference={HeightReference.CLAMP_TO_GROUND}
           scaleByDistance={new NearFarScalar(1.5e5, 1.4, 1.0e7, 0.8)}
-          translucencyByDistance={new NearFarScalar(1.5e5, 1.0, 2.5e7, 0.55)}
+          translucencyByDistance={new NearFarScalar(1.5e5, alpha, 2.5e7, alpha * 0.55)}
         />
         <LabelGraphics
-          text={m.name.replace(/ Metro$/, '').replace('-St. Paul', '/St. Paul').replace('-Bellevue', '/Bellevue')}
-          font="600 13px Inter, sans-serif"
-          fillColor={Color.WHITE}
+          text={m.name.replace(/ Metro$/, '').replace('-St. Paul', '/St. Paul').replace('-Bellevue', '/Bellevue').replace('-Fort Worth', '/FW')}
+          font={isFuture ? '400 11px Inter, sans-serif' : '600 13px Inter, sans-serif'}
+          fillColor={isFuture ? Color.fromCssColorString('#c4b5fd').withAlpha(0.35) : Color.WHITE}
           outlineColor={Color.BLACK}
-          outlineWidth={3}
+          outlineWidth={isFuture ? 1.5 : 3}
           style={LabelStyle.FILL_AND_OUTLINE}
           verticalOrigin={VerticalOrigin.BOTTOM}
           horizontalOrigin={HorizontalOrigin.CENTER}
           pixelOffset={new Cartesian2(0, -22)}
           showBackground={true}
-          backgroundColor={Color.fromCssColorString('rgba(13,31,60,0.78)')}
+          backgroundColor={isFuture ? Color.fromCssColorString('rgba(88,28,135,0.25)') : Color.fromCssColorString('rgba(13,31,60,0.78)')}
           backgroundPadding={new Cartesian2(7, 4)}
-          translucencyByDistance={new NearFarScalar(1.5e5, 1.0, 2.5e7, 0.5)}
+          translucencyByDistance={new NearFarScalar(1.5e5, alpha, 2.5e7, alpha * 0.5)}
         />
       </Entity>
     );

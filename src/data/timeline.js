@@ -22,13 +22,21 @@ export const METRO_GROWTH = {
   minneapolis:  { 2019: 80000, 2021: 130000, 2023: 165000, 2026: 198000, 2028: 240000, 2030: 290000 },
   seattle:      { 2020: 40000, 2022: 100000, 2024: 140000, 2026: 167000, 2028: 210000, 2030: 260000 },
   omaha:        { 2021: 30000, 2023: 60000, 2025: 78000, 2026: 89000, 2028: 120000, 2030: 160000 },
+  phoenix:      { 2027: 25000, 2028: 80000, 2029: 140000, 2030: 195000 },
+  portland:     { 2027: 20000, 2028: 60000, 2029: 95000, 2030: 130000 },
+  dallas:       { 2028: 30000, 2029: 110000, 2030: 210000 },
+  'kansas-city':{ 2028: 15000, 2029: 55000, 2030: 90000 },
+  austin:       { 2029: 20000, 2030: 75000 },
+  'las-vegas':  { 2029: 18000, 2030: 65000 },
+  'san-antonio':{ 2030: 35000 },
 };
 
 export function interpolateGrowth(metroId, year) {
   const curve = METRO_GROWTH[metroId];
   if (!curve) return 0;
   const years = Object.keys(curve).map(Number).sort((a, b) => a - b);
-  if (year <= years[0]) return curve[years[0]];
+  if (year < years[0]) return 0;
+  if (year === years[0]) return curve[years[0]];
   if (year >= years[years.length - 1]) return curve[years[years.length - 1]];
   for (let i = 0; i < years.length - 1; i++) {
     if (year >= years[i] && year <= years[i + 1]) {
@@ -41,4 +49,14 @@ export function interpolateGrowth(metroId, year) {
 
 export function getTotalSubscribers(year) {
   return Object.keys(METRO_GROWTH).reduce((sum, id) => sum + interpolateGrowth(id, year), 0);
+}
+
+export function getMetroLaunchYear(metroId) {
+  const curve = METRO_GROWTH[metroId];
+  if (!curve) return 2019;
+  return Math.min(...Object.keys(curve).map(Number));
+}
+
+export function getActiveMetroCount(year) {
+  return Object.keys(METRO_GROWTH).filter((id) => year >= getMetroLaunchYear(id)).length;
 }
