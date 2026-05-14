@@ -1,6 +1,7 @@
 import React from 'react';
 import SourceBadge from './SourceBadge.jsx';
 import { STATUS_COLORS } from '../data/constants.js';
+import { interpolateGrowth } from '../data/timeline.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
 import { getAlgorithmsForScope, getAgentsForScope } from '../data/algorithms.js';
 
@@ -58,7 +59,7 @@ function PanelHeader({ kicker, title, subtitle, status, onClose }) {
   );
 }
 
-function MetroDetail({ data, onClose, showSources }) {
+function MetroDetail({ data, onClose, showSources, year }) {
   return (
     <>
       <PanelHeader
@@ -69,8 +70,8 @@ function MetroDetail({ data, onClose, showSources }) {
         onClose={onClose}
       />
       <div className="px-4 py-3">
-        <Field label="Subscribers" value={fmt(data.subscriberCount)} source="expresse" showSources={showSources} />
-        <Field label="Homes Passed" value={fmt(data.homesPassed)} source="inventory" missing showSources={showSources} />
+        <Field label="Subscribers" value={fmt(interpolateGrowth(data.id, year) || data.subscriberCount)} source="expresse" showSources={showSources} />
+        <Field label="Homes Passed" value={fmt(data.homesPassed || Math.round(interpolateGrowth(data.id, year) * 2.88))} source="inventory" missing={!data.homesPassed && !interpolateGrowth(data.id, year)} showSources={showSources} />
         <Field label="Central Offices" value={data.centralOffices} source="orchestrator" showSources={showSources} />
         <Field label="Top Tier" value={data.topTier} source="expresse" showSources={showSources} />
         <Field label="Status" value={STATUS_COLORS[data.status].label} source="orchestrator" showSources={showSources} />
@@ -299,12 +300,12 @@ function ONTDetail({ data, onClose, onOpenSubscriber360, showSources, phase }) {
   );
 }
 
-export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, showSources, phase }) {
+export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, showSources, phase, year }) {
   if (!selection) return null;
   return (
     <div className="absolute right-4 top-[7.5rem] bottom-[5.5rem] z-20 w-[22rem]">
       <div className="glass flex h-full flex-col overflow-y-auto rounded-md">
-        {selection.type === 'metro' && <MetroDetail data={selection.data} onClose={onClose} showSources={showSources} />}
+        {selection.type === 'metro' && <MetroDetail data={selection.data} onClose={onClose} showSources={showSources} year={year} />}
         {selection.type === 'co' && <CODetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}
         {selection.type === 'splitter' && <SplitterDetail data={selection.data} onClose={onClose} showSources={showSources} />}
         {selection.type === 'tower' && <TowerDetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}

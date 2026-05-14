@@ -256,6 +256,7 @@ export default function App() {
           selection={selection}
           showSources={showSources}
           phase={phase}
+          year={timelineYear}
           onClose={() => setSelection(null)}
           onOpenSubscriber360={() => setShowSubscriber360(true)}
         />
