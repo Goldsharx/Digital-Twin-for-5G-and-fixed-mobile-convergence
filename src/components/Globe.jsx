@@ -694,14 +694,11 @@ export default function Globe({
     if (layers.length > 0) {
       layers.get(0).alpha = globeOpacity;
     }
+    v.scene.globe.show = globeOpacity > 0.15;
     v.scene.globe.baseColor = Color.fromCssColorString('#050b18');
     v.scene.globe.showGroundAtmosphere = globeOpacity > 0.3;
     v.scene.skyAtmosphere.show = globeOpacity > 0.3;
     v.scene.fog.enabled = globeOpacity > 0.3;
-    if (globeOpacity < 0.15) {
-      v.scene.globe.enableLighting = false;
-      v.scene.globe.show = true;
-    }
     v.scene.requestRender();
   }, [globeOpacity, viewerRef]);
 
