@@ -212,6 +212,8 @@ export default function App() {
         onONTDoubleClick={handleONTDoubleClick}
         onTowerClick={handleTowerClick}
         onAccountClick={(acct) => handleSelect({ type: 'account', id: acct.id, data: acct })}
+        role={role}
+        onOperatorClick={(op) => handleSelect({ type: 'operator', id: op.id, data: op })}
       />
 
       <StatsBar phase={phase} setPhase={setPhase} year={timelineYear} />

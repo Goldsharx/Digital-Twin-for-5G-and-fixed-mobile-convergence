@@ -25,6 +25,7 @@ import {
 import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { ANCHOR_ACCOUNTS } from '../data/anchorAccounts.js';
+import { GLOBAL_OPERATORS } from '../data/globalOperators.js';
 import { STATUS_COLORS, heightToZoomLevel } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
 import { getMetroLaunchYear } from '../data/timeline.js';
@@ -420,6 +421,49 @@ function AnchorAccountLayer({ visible, onClick }) {
   });
 }
 
+const TIER_COLORS = { 1: '#f59e0b', 2: '#3b82f6', 3: '#8b5cf6', 4: '#6b7280' };
+const TIER_SIZES = { 1: 12, 2: 9, 3: 7, 4: 5 };
+
+function GlobalOperatorLayer({ visible, onClick }) {
+  if (!visible) return null;
+  return GLOBAL_OPERATORS.map((op) => {
+    const isActive = op.status === 'active';
+    const color = isActive ? '#00D4AA' : TIER_COLORS[op.tier] || '#6b7280';
+    const size = TIER_SIZES[op.tier] || 5;
+    const revB = (op.revenue / 1e9).toFixed(0);
+    return (
+      <Entity
+        key={`op-${op.id}`}
+        position={Cartesian3.fromDegrees(op.lng, op.lat, 0)}
+        onClick={() => onClick?.(op)}
+        name={op.name}
+      >
+        <PointGraphics
+          pixelSize={size}
+          color={Color.fromCssColorString(color).withAlpha(isActive ? 0.95 : 0.55)}
+          outlineColor={isActive ? Color.fromCssColorString('#00D4AA') : Color.fromCssColorString(color).withAlpha(0.3)}
+          outlineWidth={isActive ? 2.5 : 1}
+          heightReference={HeightReference.CLAMP_TO_GROUND}
+          scaleByDistance={new NearFarScalar(5e5, 1.3, 2.5e7, 0.7)}
+        />
+        <LabelGraphics
+          text={op.tier <= 2 ? `${op.name}\n$${revB}B` : ''}
+          font="500 10px Inter, sans-serif"
+          fillColor={Color.WHITE.withAlpha(0.7)}
+          outlineColor={Color.BLACK}
+          outlineWidth={2}
+          style={LabelStyle.FILL_AND_OUTLINE}
+          verticalOrigin={VerticalOrigin.BOTTOM}
+          horizontalOrigin={HorizontalOrigin.CENTER}
+          pixelOffset={new Cartesian2(0, -14)}
+          scaleByDistance={new NearFarScalar(5e5, 1.0, 1.5e7, 0.5)}
+          distanceDisplayCondition={new DistanceDisplayCondition(0, 2.0e7)}
+        />
+      </Entity>
+    );
+  });
+}
+
 function PhaseOverlay({ phase, visible, metroId }) {
   if (!visible || phase === 'people' || !metroId) return null;
   const cos = CENTRAL_OFFICES.filter((c) => c.metroId === metroId);
@@ -487,7 +531,9 @@ export default function Globe({
   onONTClick,
   onONTDoubleClick,
   onTowerClick,
-  onAccountClick
+  onAccountClick,
+  role,
+  onOperatorClick
 }) {
   const cameraHandlerRef = useRef(null);
   const initializedRef = useRef(false);
@@ -592,6 +638,10 @@ export default function Globe({
       <AnchorAccountLayer
         visible={showAccounts && showMetros}
         onClick={onAccountClick}
+      />
+      <GlobalOperatorLayer
+        visible={role === 'ceo' && showMetros}
+        onClick={onOperatorClick}
       />
       <COTrunkLayer
         visible={showCOTrunks}

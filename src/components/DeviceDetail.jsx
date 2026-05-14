@@ -300,6 +300,41 @@ function ONTDetail({ data, onClose, onOpenSubscriber360, showSources, phase }) {
   );
 }
 
+const TIER_LABELS = { 1: 'Tier 1 · $50B+', 2: 'Tier 2 · $15-50B', 3: 'Tier 3 · $5-15B', 4: 'Tier 4 · $1-5B' };
+const REGION_NAMES = { NA: 'North America', EU: 'Europe', APAC: 'Asia-Pacific', LATAM: 'Latin America', MEA: 'Middle East & Africa' };
+
+function OperatorDetail({ data, onClose }) {
+  const revB = (data.revenue / 1e9).toFixed(1);
+  return (
+    <>
+      <PanelHeader
+        kicker="Global Operator"
+        title={data.name}
+        subtitle={`${data.country} · ${REGION_NAMES[data.region] || data.region}`}
+        status={data.status === 'active' ? 'healthy' : 'offline'}
+        onClose={onClose}
+      />
+      <div className="px-4 py-3">
+        <Field label="Revenue" value={`$${revB}B`} source={null} showSources={false} />
+        <Field label="Subscribers" value={data.subs} source={null} showSources={false} />
+        <Field label="Tier" value={TIER_LABELS[data.tier]} source={null} showSources={false} />
+        <Field label="Region" value={REGION_NAMES[data.region]} source={null} showSources={false} />
+        <Field label="Status" value={data.status === 'active' ? 'AXON Customer' : 'Prospect'} source={null} showSources={false} />
+        {data.status === 'active' && (
+          <div className="mt-2 rounded-sm border border-axon-teal/20 bg-axon-teal/5 px-2 py-1.5 text-center text-[10px] text-axon-teal">
+            Active AXON Digital Twin deployment
+          </div>
+        )}
+        {data.status === 'prospect' && (
+          <div className="mt-2 rounded-sm border border-amber-500/20 bg-amber-500/5 px-2 py-1.5 text-center text-[10px] text-amber-400">
+            Addressable market — no deployment yet
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, showSources, phase, year }) {
   if (!selection) return null;
   return (
@@ -309,6 +344,7 @@ export default function DeviceDetail({ selection, onClose, onOpenSubscriber360, 
         {selection.type === 'co' && <CODetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}
         {selection.type === 'splitter' && <SplitterDetail data={selection.data} onClose={onClose} showSources={showSources} />}
         {selection.type === 'tower' && <TowerDetail data={selection.data} onClose={onClose} showSources={showSources} phase={phase} />}
+        {selection.type === 'operator' && <OperatorDetail data={selection.data} onClose={onClose} />}
         {selection.type === 'ont' && (
           <ONTDetail
             data={selection.data}

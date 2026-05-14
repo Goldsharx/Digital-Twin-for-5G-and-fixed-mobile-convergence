@@ -3,6 +3,7 @@ import { METROS, METRO_AGGREGATE } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { PLATFORMS } from '../data/constants.js';
 import { interpolateGrowth, getTotalSubscribers, getActiveMetroCount, getActiveMetroIds } from '../data/timeline.js';
+import { MARKET_SIZING, TOTAL_GLOBAL_OPERATORS, TOTAL_GLOBAL_REVENUE, TOTAL_GLOBAL_SUBS, REGION_STATS } from '../data/globalOperators.js';
 import ANLevelGauge from './ANLevelGauge.jsx';
 
 function fmt(n) {
@@ -76,7 +77,9 @@ function PlatformList({ showSources, onToggleSources }) {
 
 const ROLES = [
   { id: 'noc', label: 'NOC', color: 'border-red-500/50 bg-red-500/10 text-red-400' },
-  { id: 'executive', label: 'Exec', color: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400' },
+  { id: 'cto', label: 'CTO', color: 'border-purple-500/50 bg-purple-500/10 text-purple-400' },
+  { id: 'cfo', label: 'CFO', color: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400' },
+  { id: 'ceo', label: 'CEO', color: 'border-amber-500/50 bg-amber-500/10 text-amber-400' },
   { id: 'consumer', label: 'CX', color: 'border-blue-500/50 bg-blue-500/10 text-blue-400' },
 ];
 
@@ -207,10 +210,10 @@ export default function Sidebar({
 
         <ANLevelGauge year={year} />
 
-        {role !== 'consumer' && (
+        {(role === 'noc' || role === 'cto') && (
           <div>
             <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              {role === 'executive' ? 'Business Alerts' : 'Top Issues'}
+              {role === 'cto' ? 'Technical Priorities' : 'Top Issues'}
             </div>
             <ul className="space-y-1.5 text-[11px]">
               {issues.map((issue) => (
@@ -223,6 +226,74 @@ export default function Sidebar({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {role === 'cfo' && (
+          <div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Financial Overview
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Current ARR</span>
+                <span className="font-mono text-[11px] text-emerald-400">$67M</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Target ARR</span>
+                <span className="font-mono text-[11px] text-axon-teal">$108M</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">CapEx Savings</span>
+                <span className="font-mono text-[11px] text-emerald-400">$22.4M/yr</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Churn Impact</span>
+                <span className="font-mono text-[11px] text-amber-400">-18% → $14M saved</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Truck Roll Savings</span>
+                <span className="font-mono text-[11px] text-emerald-400">-32% → $8.2M/yr</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {role === 'ceo' && (
+          <div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Market Opportunity
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">TAM (DT Market)</span>
+                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.tam.label}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">SAM (Telecom DT)</span>
+                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.sam.label}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">SOM (Top 100)</span>
+                <span className="font-mono text-[11px] text-emerald-400">{MARKET_SIZING.som.label}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Global Operators</span>
+                <span className="font-mono text-[11px] text-white">{TOTAL_GLOBAL_OPERATORS} mapped · 800+ total</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Global Subs</span>
+                <span className="font-mono text-[11px] text-white">{TOTAL_GLOBAL_SUBS}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">Industry Revenue</span>
+                <span className="font-mono text-[11px] text-white">{TOTAL_GLOBAL_REVENUE}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-sm border border-white/5 bg-white/[0.02] px-2 py-1.5">
+                <span className="text-[10px] text-zinc-300">CAGR 2026→2031</span>
+                <span className="font-mono text-[11px] text-emerald-400">{MARKET_SIZING.cagr}%</span>
+              </div>
+            </div>
           </div>
         )}
 
@@ -252,7 +323,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {role !== 'consumer' && (
+        {role !== 'consumer' && role !== 'ceo' && (
           <PlatformList showSources={showSources} onToggleSources={onToggleSources} />
         )}
 
