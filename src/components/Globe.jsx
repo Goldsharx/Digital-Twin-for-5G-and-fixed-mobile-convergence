@@ -19,7 +19,8 @@ import {
   PolylineGlowMaterialProperty,
   NearFarScalar,
   Cartesian2,
-  DistanceDisplayCondition
+  DistanceDisplayCondition,
+  createWorldTerrainAsync
 } from 'cesium';
 import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
@@ -513,6 +514,10 @@ export default function Globe({
     });
 
     if (Ion.defaultAccessToken && Ion.defaultAccessToken.length > 20) {
+      createWorldTerrainAsync().then((terrain) => {
+        v.scene.terrainProvider = terrain;
+      }).catch(() => {});
+
       Cesium3DTileset.fromIonAssetId(96188)
         .then((tileset) => {
           tileset.style = undefined;
