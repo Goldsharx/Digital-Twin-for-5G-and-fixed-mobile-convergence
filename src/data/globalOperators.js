@@ -141,3 +141,20 @@ export const TOTAL_GLOBAL_OPERATORS = GLOBAL_OPERATORS.length;
 export const ACTIVE_OPERATORS = GLOBAL_OPERATORS.filter(o => o.status === 'active');
 export const TOTAL_GLOBAL_SUBS = '8.4B';
 export const TOTAL_GLOBAL_REVENUE = '$1.73T';
+
+const ACTIVE_JOIN_YEARS = {
+  'dt': 2019,
+  'telefonica': 2020,
+  'lumen': 2021,
+  'brightspeed': 2023,
+  'bouygues': 2024,
+  'cassava': 2025,
+};
+
+export function getOperatorJoinYear(op) {
+  if (ACTIVE_JOIN_YEARS[op.id]) return ACTIVE_JOIN_YEARS[op.id];
+  if (op.tier === 1) return 2027;
+  if (op.tier === 2) return op.revenue >= 25e9 ? 2027 : 2028;
+  if (op.tier === 3) return 2029;
+  return 2030;
+}

@@ -24,7 +24,7 @@ export default function TimeSlider({ year, setYear, playing, setPlaying }) {
   const isFuture = year > 2026;
 
   return (
-    <div className="pointer-events-auto absolute bottom-[1rem] left-1/2 z-20 w-[42rem] max-w-[calc(100vw-2rem)] -translate-x-1/2">
+    <div className="pointer-events-auto absolute bottom-[2.5rem] left-1/2 z-20 w-[42rem] max-w-[calc(100vw-2rem)] -translate-x-1/2">
       <div className="glass rounded-md px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <button

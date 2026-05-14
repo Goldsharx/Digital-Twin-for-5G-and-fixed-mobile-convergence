@@ -25,7 +25,7 @@ import {
 import { METROS } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { ANCHOR_ACCOUNTS } from '../data/anchorAccounts.js';
-import { GLOBAL_OPERATORS } from '../data/globalOperators.js';
+import { GLOBAL_OPERATORS, getOperatorJoinYear } from '../data/globalOperators.js';
 import { STATUS_COLORS, heightToZoomLevel } from '../data/constants.js';
 import { useHomeNetwork } from '../hooks/useGeneratedData.js';
 import { getMetroLaunchYear } from '../data/timeline.js';
@@ -424,36 +424,42 @@ function AnchorAccountLayer({ visible, onClick }) {
 const TIER_COLORS = { 1: '#f59e0b', 2: '#3b82f6', 3: '#8b5cf6', 4: '#6b7280' };
 const TIER_SIZES = { 1: 18, 2: 14, 3: 10, 4: 7 };
 
-function GlobalOperatorLayer({ visible, onClick, lowOpacity }) {
+function GlobalOperatorLayer({ visible, onClick, lowOpacity, timelineYear }) {
   if (!visible) return null;
   return GLOBAL_OPERATORS.map((op) => {
-    const isActive = op.status === 'active';
-    const color = isActive ? '#00D4AA' : TIER_COLORS[op.tier] || '#6b7280';
+    const joinYear = getOperatorJoinYear(op);
+    const isLive = timelineYear >= joinYear;
+    const isUpcoming = !isLive && timelineYear >= joinYear - 1;
+    if (!isLive && !isUpcoming) return null;
+
+    const isActive = isLive && op.status === 'active';
+    const color = isActive ? '#00D4AA' : isUpcoming ? '#8b5cf6' : TIER_COLORS[op.tier] || '#6b7280';
     const size = TIER_SIZES[op.tier] || 7;
     const revB = (op.revenue / 1e9).toFixed(0);
-    const showLabel = lowOpacity ? true : op.tier <= 2;
+    const alpha = isUpcoming ? 0.3 : isActive ? 0.95 : lowOpacity ? 0.8 : 0.55;
+    const showLabel = isLive && (lowOpacity || op.tier <= 2);
     const labelText = showLabel
       ? (op.tier <= 2 ? `${op.name}\n$${revB}B · ${op.subs}` : op.name)
-      : '';
+      : isUpcoming ? op.name : '';
     return (
       <Entity
         key={`op-${op.id}`}
         position={Cartesian3.fromDegrees(op.lng, op.lat, 0)}
-        onClick={() => onClick?.(op)}
+        onClick={() => isLive && onClick?.(op)}
         name={op.name}
       >
         <PointGraphics
-          pixelSize={lowOpacity ? size * 1.3 : size}
-          color={Color.fromCssColorString(color).withAlpha(isActive ? 0.95 : lowOpacity ? 0.8 : 0.55)}
-          outlineColor={isActive ? Color.fromCssColorString('#00D4AA') : Color.fromCssColorString(color).withAlpha(lowOpacity ? 0.6 : 0.3)}
-          outlineWidth={isActive ? 3 : lowOpacity ? 2 : 1}
+          pixelSize={isUpcoming ? size * 0.7 : lowOpacity ? size * 1.3 : size}
+          color={Color.fromCssColorString(color).withAlpha(alpha)}
+          outlineColor={isActive ? Color.fromCssColorString('#00D4AA') : Color.fromCssColorString(color).withAlpha(isUpcoming ? 0.2 : lowOpacity ? 0.6 : 0.3)}
+          outlineWidth={isActive ? 3 : isUpcoming ? 1 : lowOpacity ? 2 : 1}
           heightReference={HeightReference.CLAMP_TO_GROUND}
           scaleByDistance={new NearFarScalar(5e5, 1.5, 2.5e7, 0.85)}
         />
         <LabelGraphics
           text={labelText}
-          font={op.tier <= 1 ? '600 12px Inter, sans-serif' : '500 10px Inter, sans-serif'}
-          fillColor={Color.WHITE.withAlpha(lowOpacity ? 0.9 : 0.7)}
+          font={isUpcoming ? '400 9px Inter, sans-serif' : op.tier <= 1 ? '600 12px Inter, sans-serif' : '500 10px Inter, sans-serif'}
+          fillColor={Color.WHITE.withAlpha(isUpcoming ? 0.3 : lowOpacity ? 0.9 : 0.7)}
           outlineColor={Color.BLACK}
           outlineWidth={3}
           style={LabelStyle.FILL_AND_OUTLINE}
@@ -461,7 +467,7 @@ function GlobalOperatorLayer({ visible, onClick, lowOpacity }) {
           horizontalOrigin={HorizontalOrigin.CENTER}
           pixelOffset={new Cartesian2(0, -16)}
           showBackground={true}
-          backgroundColor={Color.fromCssColorString(isActive ? 'rgba(0,212,170,0.15)' : 'rgba(13,31,60,0.7)')}
+          backgroundColor={Color.fromCssColorString(isActive ? 'rgba(0,212,170,0.15)' : isUpcoming ? 'rgba(88,28,135,0.3)' : 'rgba(13,31,60,0.7)')}
           backgroundPadding={new Cartesian2(6, 3)}
           scaleByDistance={new NearFarScalar(5e5, 1.0, 1.5e7, 0.55)}
           distanceDisplayCondition={new DistanceDisplayCondition(0, 2.5e7)}
@@ -479,11 +485,12 @@ const REGION_CENTERS = {
   MEA:   { lat: 15.0, lng: 35.0, name: 'ATLAS-MEA', agents: 5, coverage: '15 operators' },
 };
 
-function NetworkMeshLayer({ visible }) {
+function NetworkMeshLayer({ visible, timelineYear }) {
   const edges = useMemo(() => {
     if (!visible) return [];
+    const liveOps = GLOBAL_OPERATORS.filter(op => timelineYear >= getOperatorJoinYear(op));
     const byRegion = {};
-    for (const op of GLOBAL_OPERATORS) {
+    for (const op of liveOps) {
       (byRegion[op.region] ||= []).push(op);
     }
     const lines = [];
@@ -495,9 +502,9 @@ function NetworkMeshLayer({ visible }) {
         lines.push({ id: `mesh-${a.id}-${b.id}`, a, b, active: isActiveEdge, region });
       }
     }
-    // Cross-region backbone: connect tier 1 operators across regions
+    const tier1Live = liveOps.filter(o => o.tier === 1);
     const tier1ByRegion = {};
-    for (const op of GLOBAL_OPERATORS.filter(o => o.tier === 1)) {
+    for (const op of tier1Live) {
       (tier1ByRegion[op.region] ||= []).push(op);
     }
     const regions = Object.keys(tier1ByRegion);
@@ -511,7 +518,7 @@ function NetworkMeshLayer({ visible }) {
       }
     }
     return lines;
-  }, [visible]);
+  }, [visible, timelineYear]);
 
   if (!visible) return null;
 
@@ -764,9 +771,11 @@ export default function Globe({
         visible={showMetros}
         onClick={onOperatorClick}
         lowOpacity={lowOpacity}
+        timelineYear={timelineYear}
       />
       <NetworkMeshLayer
         visible={showMetros && lowOpacity}
+        timelineYear={timelineYear}
       />
       <AgentRegionLayer
         visible={showMetros}
