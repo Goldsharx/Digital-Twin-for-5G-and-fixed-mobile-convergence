@@ -43,7 +43,7 @@ function MetroLayer({ visible, onClick, onDoubleClick, timelineYear }) {
     const isNewlyLaunched = isActive && timelineYear - launchYear < 1;
     const isFuture = !isActive;
     const alpha = isFuture ? 0.45 : 1.0;
-    const sizePx = isFuture ? 12 : 14 + Math.min(18, Math.round(m.subscriberCount / 18_000));
+    const sizePx = isFuture ? 14 : 18 + Math.min(20, Math.round(m.subscriberCount / 15_000));
     return (
       <Entity
         key={m.id}
@@ -422,15 +422,19 @@ function AnchorAccountLayer({ visible, onClick }) {
 }
 
 const TIER_COLORS = { 1: '#f59e0b', 2: '#3b82f6', 3: '#8b5cf6', 4: '#6b7280' };
-const TIER_SIZES = { 1: 12, 2: 9, 3: 7, 4: 5 };
+const TIER_SIZES = { 1: 18, 2: 14, 3: 10, 4: 7 };
 
-function GlobalOperatorLayer({ visible, onClick }) {
+function GlobalOperatorLayer({ visible, onClick, lowOpacity }) {
   if (!visible) return null;
   return GLOBAL_OPERATORS.map((op) => {
     const isActive = op.status === 'active';
     const color = isActive ? '#00D4AA' : TIER_COLORS[op.tier] || '#6b7280';
-    const size = TIER_SIZES[op.tier] || 5;
+    const size = TIER_SIZES[op.tier] || 7;
     const revB = (op.revenue / 1e9).toFixed(0);
+    const showLabel = lowOpacity ? true : op.tier <= 2;
+    const labelText = showLabel
+      ? (op.tier <= 2 ? `${op.name}\n$${revB}B · ${op.subs}` : op.name)
+      : '';
     return (
       <Entity
         key={`op-${op.id}`}
@@ -439,29 +443,128 @@ function GlobalOperatorLayer({ visible, onClick }) {
         name={op.name}
       >
         <PointGraphics
-          pixelSize={size}
-          color={Color.fromCssColorString(color).withAlpha(isActive ? 0.95 : 0.55)}
-          outlineColor={isActive ? Color.fromCssColorString('#00D4AA') : Color.fromCssColorString(color).withAlpha(0.3)}
-          outlineWidth={isActive ? 2.5 : 1}
+          pixelSize={lowOpacity ? size * 1.3 : size}
+          color={Color.fromCssColorString(color).withAlpha(isActive ? 0.95 : lowOpacity ? 0.8 : 0.55)}
+          outlineColor={isActive ? Color.fromCssColorString('#00D4AA') : Color.fromCssColorString(color).withAlpha(lowOpacity ? 0.6 : 0.3)}
+          outlineWidth={isActive ? 3 : lowOpacity ? 2 : 1}
           heightReference={HeightReference.CLAMP_TO_GROUND}
-          scaleByDistance={new NearFarScalar(5e5, 1.3, 2.5e7, 0.7)}
+          scaleByDistance={new NearFarScalar(5e5, 1.5, 2.5e7, 0.85)}
         />
         <LabelGraphics
-          text={op.tier <= 2 ? `${op.name}\n$${revB}B` : ''}
-          font="500 10px Inter, sans-serif"
-          fillColor={Color.WHITE.withAlpha(0.7)}
+          text={labelText}
+          font={op.tier <= 1 ? '600 12px Inter, sans-serif' : '500 10px Inter, sans-serif'}
+          fillColor={Color.WHITE.withAlpha(lowOpacity ? 0.9 : 0.7)}
           outlineColor={Color.BLACK}
-          outlineWidth={2}
+          outlineWidth={3}
           style={LabelStyle.FILL_AND_OUTLINE}
           verticalOrigin={VerticalOrigin.BOTTOM}
           horizontalOrigin={HorizontalOrigin.CENTER}
-          pixelOffset={new Cartesian2(0, -14)}
-          scaleByDistance={new NearFarScalar(5e5, 1.0, 1.5e7, 0.5)}
-          distanceDisplayCondition={new DistanceDisplayCondition(0, 2.0e7)}
+          pixelOffset={new Cartesian2(0, -16)}
+          showBackground={true}
+          backgroundColor={Color.fromCssColorString(isActive ? 'rgba(0,212,170,0.15)' : 'rgba(13,31,60,0.7)')}
+          backgroundPadding={new Cartesian2(6, 3)}
+          scaleByDistance={new NearFarScalar(5e5, 1.0, 1.5e7, 0.55)}
+          distanceDisplayCondition={new DistanceDisplayCondition(0, 2.5e7)}
         />
       </Entity>
     );
   });
+}
+
+const REGION_CENTERS = {
+  NA:    { lat: 39.8, lng: -98.5, name: 'ATLAS-NA', agents: 4, coverage: '12 operators' },
+  EU:    { lat: 50.1, lng: 10.5, name: 'ATLAS-EU', agents: 6, coverage: '32 operators' },
+  APAC:  { lat: 20.0, lng: 105.0, name: 'ATLAS-APAC', agents: 8, coverage: '35 operators' },
+  LATAM: { lat: -10.0, lng: -55.0, name: 'ATLAS-LATAM', agents: 3, coverage: '12 operators' },
+  MEA:   { lat: 15.0, lng: 35.0, name: 'ATLAS-MEA', agents: 5, coverage: '15 operators' },
+};
+
+function NetworkMeshLayer({ visible }) {
+  const edges = useMemo(() => {
+    if (!visible) return [];
+    const byRegion = {};
+    for (const op of GLOBAL_OPERATORS) {
+      (byRegion[op.region] ||= []).push(op);
+    }
+    const lines = [];
+    for (const region of Object.keys(byRegion)) {
+      const ops = byRegion[region].sort((a, b) => a.lng - b.lng);
+      for (let i = 0; i < ops.length - 1; i++) {
+        const a = ops[i], b = ops[i + 1];
+        const isActiveEdge = a.status === 'active' || b.status === 'active';
+        lines.push({ id: `mesh-${a.id}-${b.id}`, a, b, active: isActiveEdge, region });
+      }
+    }
+    // Cross-region backbone: connect tier 1 operators across regions
+    const tier1ByRegion = {};
+    for (const op of GLOBAL_OPERATORS.filter(o => o.tier === 1)) {
+      (tier1ByRegion[op.region] ||= []).push(op);
+    }
+    const regions = Object.keys(tier1ByRegion);
+    for (let i = 0; i < regions.length; i++) {
+      for (let j = i + 1; j < regions.length; j++) {
+        const a = tier1ByRegion[regions[i]][0];
+        const b = tier1ByRegion[regions[j]][0];
+        if (a && b) {
+          lines.push({ id: `backbone-${a.id}-${b.id}`, a, b, active: true, backbone: true });
+        }
+      }
+    }
+    return lines;
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return edges.map((e) => (
+    <Entity key={e.id}>
+      <PolylineGraphics
+        positions={Cartesian3.fromDegreesArray([e.a.lng, e.a.lat, e.b.lng, e.b.lat])}
+        width={e.backbone ? 1.5 : 1}
+        material={new PolylineGlowMaterialProperty({
+          glowPower: e.backbone ? 0.25 : 0.15,
+          color: Color.fromCssColorString(
+            e.active ? '#00D4AA' : e.backbone ? '#3b82f6' : '#8b5cf6'
+          ).withAlpha(e.backbone ? 0.35 : e.active ? 0.3 : 0.15)
+        })}
+        clampToGround={true}
+      />
+    </Entity>
+  ));
+}
+
+function AgentRegionLayer({ visible, phase }) {
+  if (!visible || phase !== 'agents') return null;
+  return Object.entries(REGION_CENTERS).map(([region, center]) => (
+    <Entity
+      key={`agent-region-${region}`}
+      position={Cartesian3.fromDegrees(center.lng, center.lat, 0)}
+      name={center.name}
+    >
+      <EllipseGraphics
+        semiMajorAxis={2_500_000}
+        semiMinorAxis={1_800_000}
+        material={Color.fromCssColorString('#8b5cf6').withAlpha(0.04)}
+        outline={true}
+        outlineColor={Color.fromCssColorString('#8b5cf6').withAlpha(0.2)}
+        outlineWidth={1.5}
+        heightReference={HeightReference.CLAMP_TO_GROUND}
+      />
+      <LabelGraphics
+        text={`${center.name}\n${center.agents} AI Agents · ${center.coverage}`}
+        font="700 13px Inter, sans-serif"
+        fillColor={Color.fromCssColorString('#c4b5fd')}
+        outlineColor={Color.BLACK}
+        outlineWidth={3}
+        style={LabelStyle.FILL_AND_OUTLINE}
+        verticalOrigin={VerticalOrigin.CENTER}
+        horizontalOrigin={HorizontalOrigin.CENTER}
+        showBackground={true}
+        backgroundColor={Color.fromCssColorString('rgba(88,28,135,0.4)')}
+        backgroundPadding={new Cartesian2(10, 6)}
+        scaleByDistance={new NearFarScalar(1e6, 1.2, 2.5e7, 0.6)}
+      />
+    </Entity>
+  ));
 }
 
 function PhaseOverlay({ phase, visible, metroId }) {
@@ -533,7 +636,8 @@ export default function Globe({
   onTowerClick,
   onAccountClick,
   role,
-  onOperatorClick
+  onOperatorClick,
+  globeOpacity = 1.0
 }) {
   const cameraHandlerRef = useRef(null);
   const initializedRef = useRef(false);
@@ -582,6 +686,26 @@ export default function Globe({
     handleCameraChanged();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const v = viewerRef.current;
+    if (!v) return;
+    const layers = v.imageryLayers;
+    if (layers.length > 0) {
+      layers.get(0).alpha = globeOpacity;
+    }
+    v.scene.globe.baseColor = Color.fromCssColorString('#050b18');
+    v.scene.globe.showGroundAtmosphere = globeOpacity > 0.3;
+    v.scene.skyAtmosphere.show = globeOpacity > 0.3;
+    v.scene.fog.enabled = globeOpacity > 0.3;
+    if (globeOpacity < 0.15) {
+      v.scene.globe.enableLighting = false;
+      v.scene.globe.show = true;
+    }
+    v.scene.requestRender();
+  }, [globeOpacity, viewerRef]);
+
+  const lowOpacity = globeOpacity < 0.4;
 
   // What to show at each zoom level (planet > metro > city > district > neighborhood > street > building)
   const zl = zoomLevel;
@@ -640,8 +764,16 @@ export default function Globe({
         onClick={onAccountClick}
       />
       <GlobalOperatorLayer
-        visible={role === 'ceo' && showMetros}
+        visible={showMetros}
         onClick={onOperatorClick}
+        lowOpacity={lowOpacity}
+      />
+      <NetworkMeshLayer
+        visible={showMetros && lowOpacity}
+      />
+      <AgentRegionLayer
+        visible={showMetros}
+        phase={phase}
       />
       <COTrunkLayer
         visible={showCOTrunks}

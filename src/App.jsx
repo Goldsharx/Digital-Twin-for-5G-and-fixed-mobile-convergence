@@ -20,6 +20,7 @@ import { useMetroGPON } from './hooks/useGeneratedData.js';
 import { useSimulation } from './hooks/useSimulation.js';
 import { generateCellTowers } from './data/cellTowers.js';
 import { SCENARIOS } from './data/scenarios.js';
+import GlobeControls from './components/GlobeControls.jsx';
 
 export default function App() {
   const viewerRef = useRef(null);
@@ -42,6 +43,7 @@ export default function App() {
   const [showAccounts, setShowAccounts] = useState(false);
   const [activeScenario, setActiveScenario] = useState(null);
   const [role, setRole] = useState('noc');
+  const [globeOpacity, setGlobeOpacity] = useState(1.0);
 
   const projectedMetros = useMemo(() => {
     if (!activeScenario) return [];
@@ -214,6 +216,7 @@ export default function App() {
         onAccountClick={(acct) => handleSelect({ type: 'account', id: acct.id, data: acct })}
         role={role}
         onOperatorClick={(op) => handleSelect({ type: 'operator', id: op.id, data: op })}
+        globeOpacity={globeOpacity}
       />
 
       <StatsBar phase={phase} setPhase={setPhase} year={timelineYear} />
@@ -274,6 +277,10 @@ export default function App() {
       )}
 
       <EventTicker events={events} />
+
+      {storyStep === null && (
+        <GlobeControls globeOpacity={globeOpacity} setGlobeOpacity={setGlobeOpacity} />
+      )}
 
       {storyStep === null && (
         <TimeSlider
