@@ -34,7 +34,7 @@ const STEPS = [
     title: 'LoDo CO — Where Blame Dies',
     reality: 'Source provenance replaces finger-pointing',
     narration:
-      '12,200 subscribers, 192 PON ports. Every data field has a badge showing which platform owns it. When an alarm fires, nobody asks "whose system said that?" — the provenance is right there. The blue dots are what Orchestrator sees. The grey marks are what\'s missing. Honesty about gaps kills politics faster than any reorg.',
+      '12,200 subscribers, 192 PON ports. Every data field has a badge showing which platform owns it. When an alarm fires, nobody asks "whose system said that?" — the provenance is right there. Green dots are healthy ONTs. Yellow means degraded. Red means alarm. Grey means offline — no signal at all. Honesty about gaps kills politics faster than any reorg.',
     camera: { lat: 39.7530, lng: -105.0000, height: 4_000 },
     action: (ctx) => {
       ctx.setFocusedMetroId('denver');
