@@ -82,8 +82,6 @@ function AccountCard({ account }) {
 export default function KPIPanel({ year, visible, onClose, activeScenario, setActiveScenario, onToggleAccounts }) {
   const [tab, setTab] = useState('kpis');
 
-  if (!visible) return null;
-
   const isPast = year < 2022;
   const kpis = useMemo(() => getKPIsForYear(year), [year]);
   const totalImpact = useMemo(() => kpis.reduce((s, k) => s + k.rawImpact, 0), [kpis]);
@@ -104,6 +102,8 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
       return year >= start - 1;
     });
   }, [year]);
+
+  if (!visible) return null;
 
   return (
     <div className="pointer-events-auto absolute left-4 bottom-[5rem] z-30 w-[20rem]">
