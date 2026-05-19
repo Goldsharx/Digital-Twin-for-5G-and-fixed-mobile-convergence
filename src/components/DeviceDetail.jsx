@@ -311,7 +311,8 @@ function seedFromId(id) {
 
 function pctRange(seed, min, max, step = 0.1) {
   const raw = min + ((seed % 1000) / 1000) * (max - min);
-  return Math.round(raw / step) * step;
+  const decimals = step < 1 ? Math.round(-Math.log10(step)) : 0;
+  return parseFloat((Math.round(raw / step) * step).toFixed(decimals));
 }
 
 function SectionHeader({ title }) {

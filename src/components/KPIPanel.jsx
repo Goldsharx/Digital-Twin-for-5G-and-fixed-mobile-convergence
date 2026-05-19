@@ -82,7 +82,7 @@ function AccountCard({ account }) {
 export default function KPIPanel({ year, visible, onClose, activeScenario, setActiveScenario, onToggleAccounts }) {
   const [tab, setTab] = useState('kpis');
 
-  const isPast = year < 2022;
+  const isPast = year < 2026;
   const kpis = useMemo(() => getKPIsForYear(year), [year]);
   const totalImpact = useMemo(() => kpis.reduce((s, k) => s + k.rawImpact, 0), [kpis]);
   const grouped = useMemo(() => {

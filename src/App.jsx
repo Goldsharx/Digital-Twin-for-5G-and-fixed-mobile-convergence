@@ -168,6 +168,7 @@ export default function App() {
     setFocusedCOId(null);
     setSelection(null);
     setShowSubscriber360(false);
+    setStoryStep(null);
     flyTo(CAMERA_VIEWS.planet.lat, CAMERA_VIEWS.planet.lng, CAMERA_VIEWS.planet.height, 2.5);
   }, [flyTo]);
 
