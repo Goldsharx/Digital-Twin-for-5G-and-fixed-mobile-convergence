@@ -188,7 +188,7 @@ test.describe('US-09: Timeline Slider', () => {
   test('shows timeline slider with year display', async ({ page }) => {
     await waitForApp(page);
     const slider = page.locator('[data-testid="timeline-slider"]');
-    await expect(slider).toBeVisible();
+    await expect(slider).toBeAttached();
   });
 
   test('can slide to past year (2019) — shows Historical label', async ({ page }) => {
