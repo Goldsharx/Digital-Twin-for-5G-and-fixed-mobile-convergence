@@ -644,7 +644,8 @@ export default function Globe({
   onAccountClick,
   role,
   onOperatorClick,
-  globeOpacity = 1.0
+  globeOpacity = 1.0,
+  showOperators = true
 }) {
   const cameraHandlerRef = useRef(null);
   const initializedRef = useRef(false);
@@ -768,13 +769,13 @@ export default function Globe({
         onClick={onAccountClick}
       />
       <GlobalOperatorLayer
-        visible={showMetros}
+        visible={showMetros && showOperators}
         onClick={onOperatorClick}
         lowOpacity={lowOpacity}
         timelineYear={timelineYear}
       />
       <NetworkMeshLayer
-        visible={showMetros && lowOpacity}
+        visible={showMetros && lowOpacity && showOperators}
         timelineYear={timelineYear}
       />
       <AgentRegionLayer

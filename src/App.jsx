@@ -21,6 +21,7 @@ import { useSimulation } from './hooks/useSimulation.js';
 import { generateCellTowers } from './data/cellTowers.js';
 import { SCENARIOS } from './data/scenarios.js';
 import GlobeControls from './components/GlobeControls.jsx';
+import ModelMapPanel from './components/ModelMapPanel.jsx';
 
 export default function App() {
   const viewerRef = useRef(null);
@@ -41,6 +42,8 @@ export default function App() {
   const [showNeurosquads, setShowNeurosquads] = useState(false);
   const [showMCP, setShowMCP] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
+  const [showOperators, setShowOperators] = useState(true);
+  const [showModelMap, setShowModelMap] = useState(false);
   const [activeScenario, setActiveScenario] = useState(null);
   const [role, setRole] = useState('noc');
   const [globeOpacity, setGlobeOpacity] = useState(1.0);
@@ -175,7 +178,7 @@ export default function App() {
     if (!timelinePlaying) return;
     const interval = setInterval(() => {
       setTimelineYear((y) => {
-        if (y >= 2030) { setTimelinePlaying(false); return 2030; }
+        if (y >= 2035) { setTimelinePlaying(false); return 2035; }
         return Math.round((y + 0.5) * 10) / 10;
       });
     }, 800);
@@ -217,6 +220,7 @@ export default function App() {
         role={role}
         onOperatorClick={(op) => handleSelect({ type: 'operator', id: op.id, data: op })}
         globeOpacity={globeOpacity}
+        showOperators={showOperators}
       />
 
       <StatsBar phase={phase} setPhase={setPhase} year={timelineYear} />
@@ -237,6 +241,9 @@ export default function App() {
         onToggleArchitecture={() => setShowArchitecture((s) => !s)}
         onToggleNeurosquads={() => setShowNeurosquads((s) => !s)}
         onToggleMCP={() => setShowMCP((s) => !s)}
+        showOperators={showOperators}
+        onToggleOperators={() => setShowOperators((s) => !s)}
+        onToggleModelMap={() => setShowModelMap((s) => !s)}
       />
 
       <Breadcrumb
@@ -262,6 +269,7 @@ export default function App() {
           showSources={showSources}
           phase={phase}
           year={timelineYear}
+          role={role}
           onClose={() => setSelection(null)}
           onOpenSubscriber360={() => setShowSubscriber360(true)}
         />
@@ -315,6 +323,12 @@ export default function App() {
       <MCPPanel
         visible={showMCP}
         onClose={() => setShowMCP(false)}
+      />
+
+      <ModelMapPanel
+        visible={showModelMap}
+        onClose={() => setShowModelMap(false)}
+        onModelClick={(model) => handleSelect({ type: 'model', id: model.id, data: model })}
       />
 
       {storyStep !== null && (

@@ -1,4 +1,4 @@
-export const TIMELINE_RANGE = { start: 2019, end: 2030 };
+export const TIMELINE_RANGE = { start: 2019, end: 2035 };
 
 export const MILESTONES = [
   { year: 2019, label: 'Quantum Fiber launched', type: 'launch' },
@@ -13,6 +13,11 @@ export const MILESTONES = [
   { year: 2028, label: 'Platform unification complete', type: 'platform' },
   { year: 2029, label: 'AN Level 4 operational', type: 'strategy' },
   { year: 2030, label: 'Full autonomous network', type: 'strategy' },
+  { year: 2031, label: 'APAC expansion wave', type: 'expansion' },
+  { year: 2032, label: '50 operators on platform', type: 'growth' },
+  { year: 2033, label: 'MEA & LATAM coverage', type: 'expansion' },
+  { year: 2034, label: 'AN Level 5 — fully autonomous', type: 'strategy' },
+  { year: 2035, label: '100+ operators · $2B+ ARR', type: 'growth' },
 ];
 
 // Subscriber growth curve per metro (interpolated by year)

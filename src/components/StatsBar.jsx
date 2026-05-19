@@ -53,7 +53,7 @@ export default function StatsBar({ phase, setPhase, year }) {
             <Stat label="Homes Passed" value={fmt(Math.round(subs * 2.88))} highlight={isFuture} />
             <Stat label="Metros" value={getActiveMetroCount(year)} highlight={isFuture} />
             <Stat label="Central Offices" value={activeCOs} highlight={isFuture} />
-            <Stat label="States" value={16} />
+            <Stat label="States" value={new Set(METROS.filter((m) => activeIds.includes(m.id)).map((m) => m.state)).size} highlight={isFuture} />
           </div>
         </div>
       </div>

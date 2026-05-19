@@ -98,7 +98,10 @@ export default function Sidebar({
   onToggleKPIs,
   onToggleArchitecture,
   onToggleNeurosquads,
-  onToggleMCP
+  onToggleMCP,
+  showOperators,
+  onToggleOperators,
+  onToggleModelMap
 }) {
   // Compute health buckets for the current scope.
   const scopeCounts = useMemo(() => {
@@ -327,7 +330,7 @@ export default function Sidebar({
           <PlatformList showSources={showSources} onToggleSources={onToggleSources} />
         )}
 
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
+        <div className="grid grid-cols-4 gap-1.5 pt-1">
           <button
             onClick={onReset}
             className="rounded-sm border border-white/15 bg-white/5 px-2 py-1.5 text-[10px] font-medium text-zinc-200 transition hover:bg-white/10"
@@ -347,6 +350,16 @@ export default function Sidebar({
             KPIs
           </button>
           <button
+            onClick={onToggleOperators}
+            className={`rounded-sm border px-2 py-1.5 text-[10px] font-medium transition ${
+              showOperators
+                ? 'border-amber-500/60 bg-amber-500/20 text-amber-400'
+                : 'border-amber-500/30 bg-amber-500/5 text-amber-400/50 hover:bg-amber-500/10'
+            }`}
+          >
+            Operators
+          </button>
+          <button
             onClick={onToggleArchitecture}
             className="rounded-sm border border-purple-500/50 bg-purple-500/10 px-2 py-1.5 text-[10px] font-medium text-purple-400 transition hover:bg-purple-500/20"
           >
@@ -364,7 +377,54 @@ export default function Sidebar({
           >
             MCP
           </button>
+          <button
+            onClick={onToggleModelMap}
+            className="rounded-sm border border-pink-500/50 bg-pink-500/10 px-2 py-1.5 text-[10px] font-medium text-pink-400 transition hover:bg-pink-500/20"
+          >
+            Models
+          </button>
         </div>
+
+        {showOperators && (
+          <div className="rounded-sm border border-amber-500/20 bg-amber-500/5 p-3">
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-amber-400">
+              Market Sizing · TAM / SAM / SOM
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-400">TAM · Global DT</span>
+                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.tam.label}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full bg-amber-500/40" style={{ width: '100%' }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-400">SAM · Telecom DT</span>
+                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.sam.label}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full bg-amber-500/60" style={{ width: `${(MARKET_SIZING.sam.value / MARKET_SIZING.tam.value * 100).toFixed(1)}%` }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-400">SOM · AXON Target</span>
+                <span className="font-mono text-[11px] text-emerald-400">{MARKET_SIZING.som.label}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500/80" style={{ width: `${(MARKET_SIZING.som.value / MARKET_SIZING.sam.value * 100).toFixed(1)}%` }} />
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+                <div className="text-zinc-500">Operators mapped</div>
+                <div className="font-mono text-white text-right">{TOTAL_GLOBAL_OPERATORS}</div>
+                <div className="text-zinc-500">Global subs</div>
+                <div className="font-mono text-white text-right">{TOTAL_GLOBAL_SUBS}</div>
+                <div className="text-zinc-500">Industry revenue</div>
+                <div className="font-mono text-white text-right">{TOTAL_GLOBAL_REVENUE}</div>
+                <div className="text-zinc-500">CAGR 2026→31</div>
+                <div className="font-mono text-emerald-400 text-right">{MARKET_SIZING.cagr}%</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

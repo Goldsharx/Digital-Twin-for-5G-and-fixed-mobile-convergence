@@ -60,7 +60,7 @@ export const GLOBAL_OPERATORS = [
   { id: 'tele2', name: 'Tele2', country: 'SE', region: 'EU', lat: 59.3326, lng: 18.0649, revenue: 7e9, subs: '5M', tier: 3, status: 'prospect' },
   { id: 'a1-telekom', name: 'A1 Telekom Austria', country: 'AT', region: 'EU', lat: 48.2082, lng: 16.3738, revenue: 7e9, subs: '25M', tier: 3, status: 'prospect' },
   { id: 'tim', name: 'TIM (Telecom Italia)', country: 'IT', region: 'EU', lat: 41.8719, lng: 12.5674, revenue: 7e9, subs: '30M', tier: 3, status: 'prospect' },
-  { id: 'cassava', name: 'Cassava Technologies', country: 'ZW', region: 'MEA', lat: -17.8292, lng: 31.0522, revenue: 5e9, subs: '100M', tier: 3, status: 'active' },
+  { id: 'cassava', name: 'Cassava Technologies', country: 'ZW', region: 'MEA', lat: -17.8252, lng: 31.0335, revenue: 5e9, subs: '100M', tier: 3, status: 'active' },
   { id: 'claro', name: 'Claro (América Móvil)', country: 'BR', region: 'LATAM', lat: -23.5505, lng: -46.6333, revenue: 12e9, subs: '97M', tier: 3, status: 'prospect' },
   { id: 'movistar', name: 'Movistar (Telefónica)', country: 'AR', region: 'LATAM', lat: -34.6037, lng: -58.3816, revenue: 8e9, subs: '40M', tier: 3, status: 'prospect' },
   { id: 'telkom-sa', name: 'Telkom SA', country: 'ZA', region: 'MEA', lat: -25.7479, lng: 28.2293, revenue: 5e9, subs: '17M', tier: 3, status: 'prospect' },
@@ -153,8 +153,8 @@ const ACTIVE_JOIN_YEARS = {
 
 export function getOperatorJoinYear(op) {
   if (ACTIVE_JOIN_YEARS[op.id]) return ACTIVE_JOIN_YEARS[op.id];
-  if (op.tier === 1) return 2027;
-  if (op.tier === 2) return op.revenue >= 25e9 ? 2027 : 2028;
-  if (op.tier === 3) return 2029;
-  return 2030;
+  if (op.tier === 1) return op.revenue >= 100e9 ? 2027 : 2028;
+  if (op.tier === 2) return op.revenue >= 30e9 ? 2029 : op.revenue >= 18e9 ? 2030 : 2031;
+  if (op.tier === 3) return op.revenue >= 8e9 ? 2031 : 2032;
+  return op.revenue >= 4e9 ? 2033 : op.revenue >= 2e9 ? 2034 : 2035;
 }
