@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { KPIS, KPI_CATEGORIES, SCENARIOS } from '../data/scenarios.js';
-import { ANCHOR_ACCOUNTS, TOTAL_REVENUE, TOTAL_TARGET } from '../data/anchorAccounts.js';
+import React, { useMemo, useState } from 'react';
+import { getKPIsForYear, KPI_CATEGORIES, SCENARIOS } from '../data/scenarios.js';
+import { getAccountsForYear } from '../data/anchorAccounts.js';
 
 function KPICard({ kpi }) {
   const cat = KPI_CATEGORIES[kpi.category];
@@ -84,9 +84,26 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
 
   if (!visible) return null;
 
-  const isPast = year < 2026;
-  const grouped = { save: [], make: [], find: [] };
-  for (const k of KPIS) grouped[k.category].push(k);
+  const isPast = year < 2022;
+  const kpis = useMemo(() => getKPIsForYear(year), [year]);
+  const totalImpact = useMemo(() => kpis.reduce((s, k) => s + k.rawImpact, 0), [kpis]);
+  const grouped = useMemo(() => {
+    const g = { save: [], make: [], find: [] };
+    for (const k of kpis) g[k.category].push(k);
+    return g;
+  }, [kpis]);
+
+  const accounts = useMemo(() => getAccountsForYear(year), [year]);
+  const accountRevenue = useMemo(() => accounts.reduce((s, a) => s + a.revenue, 0), [accounts]);
+  const accountTarget = useMemo(() => accounts.reduce((s, a) => s + a.target, 0), [accounts]);
+
+  const activeScenarios = useMemo(() => {
+    return SCENARIOS.filter((s) => {
+      if (s.id === 'all-wins') return true;
+      const [start] = s.timeline.split('-').map(Number);
+      return year >= start - 1;
+    });
+  }, [year]);
 
   return (
     <div className="pointer-events-auto absolute left-4 bottom-[5rem] z-30 w-[20rem]">
@@ -145,15 +162,22 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
                 </div>
               ))}
               <div className="mt-2 rounded-sm border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-2 text-center">
-                <div className="text-[9px] uppercase tracking-wider text-zinc-400">Total Annual Impact</div>
-                <div className="text-lg font-bold text-emerald-400">$102.7M</div>
+                <div className="text-[9px] uppercase tracking-wider text-zinc-400">Total Annual Impact · {Math.round(year)}</div>
+                <div className="text-lg font-bold text-emerald-400">
+                  {totalImpact >= 1e9 ? `$${(totalImpact / 1e9).toFixed(1)}B` : `$${(totalImpact / 1e6).toFixed(1)}M`}
+                </div>
               </div>
             </>
           )}
 
           {tab === 'scenarios' && (
             <div className="space-y-1.5">
-              {SCENARIOS.map((s) => (
+              {activeScenarios.length === 0 && (
+                <div className="rounded-sm border border-dashed border-zinc-700 bg-black/20 px-2 py-1.5 text-center text-[10px] text-zinc-500">
+                  No scenarios active before {Math.round(year)}
+                </div>
+              )}
+              {activeScenarios.map((s) => (
                 <ScenarioCard
                   key={s.id}
                   scenario={s}
@@ -177,27 +201,35 @@ export default function KPIPanel({ year, visible, onClose, activeScenario, setAc
               >
                 Toggle Accounts on Globe
               </button>
-              {ANCHOR_ACCOUNTS.map((acct) => (
+              {accounts.length === 0 && (
+                <div className="rounded-sm border border-dashed border-zinc-700 bg-black/20 px-2 py-1.5 text-center text-[10px] text-zinc-500">
+                  No accounts onboarded before {Math.round(year)}
+                </div>
+              )}
+              {accounts.map((acct) => (
                 <AccountCard key={acct.id} account={acct} />
               ))}
-              <div className="mt-2 rounded-sm border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[9px] uppercase tracking-wider text-zinc-400">Current ARR</div>
-                    <div className="text-base font-bold text-emerald-400">${(TOTAL_REVENUE / 1_000_000).toFixed(0)}M</div>
+              {accounts.length > 0 && (
+                <div className="mt-2 rounded-sm border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-zinc-400">ARR · {Math.round(year)}</div>
+                      <div className="text-base font-bold text-emerald-400">${(accountRevenue / 1_000_000).toFixed(0)}M</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[9px] uppercase tracking-wider text-zinc-400">Target</div>
+                      <div className="text-base font-bold text-axon-teal">${(accountTarget / 1_000_000).toFixed(0)}M</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-[9px] uppercase tracking-wider text-zinc-400">Target ARR</div>
-                    <div className="text-base font-bold text-axon-teal">${(TOTAL_TARGET / 1_000_000).toFixed(0)}M</div>
+                  <div className="mt-1.5 h-2 w-full rounded-full bg-white/5">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-axon-teal"
+                      style={{ width: `${Math.min(Math.round((accountRevenue / accountTarget) * 100), 100)}%` }}
+                    />
                   </div>
+                  <div className="mt-1 text-center text-[9px] text-zinc-500">{accounts.length} accounts active</div>
                 </div>
-                <div className="mt-1.5 h-2 w-full rounded-full bg-white/5">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-axon-teal"
-                    style={{ width: `${Math.round((TOTAL_REVENUE / TOTAL_TARGET) * 100)}%` }}
-                  />
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
