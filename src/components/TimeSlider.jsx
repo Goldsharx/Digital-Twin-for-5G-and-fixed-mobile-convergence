@@ -88,6 +88,7 @@ export default function TimeSlider({ year, setYear, playing, setPlaying }) {
                 value={year}
                 onChange={(e) => setYear(parseFloat(e.target.value))}
                 className="absolute inset-0 w-full cursor-pointer opacity-0"
+                data-testid="timeline-slider"
               />
             </div>
 

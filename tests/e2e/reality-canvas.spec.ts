@@ -187,13 +187,13 @@ test.describe('US-08: Story Mode', () => {
 test.describe('US-09: Timeline Slider', () => {
   test('shows timeline slider with year display', async ({ page }) => {
     await waitForApp(page);
-    const slider = page.locator('input[type="range"]');
+    const slider = page.locator('[data-testid="timeline-slider"]');
     await expect(slider).toBeVisible();
   });
 
   test('can slide to past year (2019) — shows Historical label', async ({ page }) => {
     await waitForApp(page);
-    const slider = page.locator('input[type="range"]');
+    const slider = page.locator('[data-testid="timeline-slider"]');
     await slider.fill('2019');
     await page.waitForTimeout(500);
     await expect(page.getByText('Historical', { exact: true }).first()).toBeVisible();
@@ -201,7 +201,7 @@ test.describe('US-09: Timeline Slider', () => {
 
   test('can slide to future year (2030) — shows Projected label', async ({ page }) => {
     await waitForApp(page);
-    const slider = page.locator('input[type="range"]');
+    const slider = page.locator('[data-testid="timeline-slider"]');
     await slider.fill('2030');
     await page.waitForTimeout(500);
     await expect(page.getByText('Projected', { exact: true }).first()).toBeVisible();
@@ -432,7 +432,7 @@ test.describe('US-17: Simulation Scenarios', () => {
 test.describe('US-20: Timeline-dependent Metros', () => {
   test('subscriber count changes with timeline year', async ({ page }) => {
     await waitForApp(page);
-    const slider = page.locator('input[type="range"]');
+    const slider = page.locator('[data-testid="timeline-slider"]');
 
     await slider.fill('2026');
     await page.waitForTimeout(500);
@@ -447,7 +447,7 @@ test.describe('US-20: Timeline-dependent Metros', () => {
 
   test('metro count changes with timeline year', async ({ page }) => {
     await waitForApp(page);
-    const slider = page.locator('input[type="range"]');
+    const slider = page.locator('[data-testid="timeline-slider"]');
 
     await slider.fill('2026');
     await page.waitForTimeout(500);
@@ -467,7 +467,7 @@ test.describe('US-20: Timeline-dependent Metros', () => {
 test.describe('US-21: Visual Era Transitions', () => {
   test('past year applies sepia filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2020');
+    await page.locator('[data-testid="timeline-slider"]').fill('2020');
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -476,7 +476,7 @@ test.describe('US-21: Visual Era Transitions', () => {
 
   test('future year applies hue-rotate filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2029');
+    await page.locator('[data-testid="timeline-slider"]').fill('2029');
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -485,7 +485,7 @@ test.describe('US-21: Visual Era Transitions', () => {
 
   test('current year (2026) has no filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2026');
+    await page.locator('[data-testid="timeline-slider"]').fill('2026');
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -499,21 +499,21 @@ test.describe('US-21: Visual Era Transitions', () => {
 test.describe('US-22: Historical/Projected Badges', () => {
   test('shows Historical badge before 2025', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2022');
+    await page.locator('[data-testid="timeline-slider"]').fill('2022');
     await page.waitForTimeout(500);
     await expect(page.getByText('Historical', { exact: true }).first()).toBeVisible();
   });
 
   test('shows Projected badge after 2027', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2028');
+    await page.locator('[data-testid="timeline-slider"]').fill('2028');
     await page.waitForTimeout(500);
     await expect(page.getByText('Projected', { exact: true }).first()).toBeVisible();
   });
 
   test('no badge at current year 2026', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2026');
+    await page.locator('[data-testid="timeline-slider"]').fill('2026');
     await page.waitForTimeout(500);
     await expect(page.getByText('Present')).toBeVisible();
   });
@@ -598,7 +598,7 @@ test.describe('UI/UX: Visual Quality', () => {
   test('stats bar and timeline slider do not overlap', async ({ page }) => {
     await waitForApp(page);
     const statsText = page.getByText('Subscribers', { exact: true }).first();
-    const timeline = page.locator('input[type="range"]');
+    const timeline = page.locator('[data-testid="timeline-slider"]');
 
     const statsBox = await statsText.boundingBox();
     const timeBox = await timeline.boundingBox();
@@ -734,7 +734,7 @@ test.describe('User Journey: Full Demo Flow', () => {
 
   test('timeline + role combination works correctly', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('input[type="range"]').fill('2030');
+    await page.locator('[data-testid="timeline-slider"]').fill('2030');
     await page.waitForTimeout(500);
 
     await page.locator('button').filter({ hasText: 'CEO' }).click();

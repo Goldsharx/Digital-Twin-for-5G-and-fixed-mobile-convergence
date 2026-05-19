@@ -12,6 +12,20 @@ export const MARKET_SIZING = {
   growthTo2031: 5.89e9,
 };
 
+export function getMarketSizing(year) {
+  const years = year - 2026;
+  const factor = years > 0 ? Math.pow(1.166, years) : Math.pow(1.05, years);
+  const fmt = (n) => n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : `$${(n / 1e6).toFixed(0)}M`;
+  return {
+    tam: MARKET_SIZING.tam.value * factor,
+    tamLabel: fmt(MARKET_SIZING.tam.value * factor),
+    sam: MARKET_SIZING.sam.value * factor,
+    samLabel: fmt(MARKET_SIZING.sam.value * factor),
+    som: MARKET_SIZING.som.value * factor,
+    somLabel: fmt(MARKET_SIZING.som.value * factor),
+  };
+}
+
 export const GLOBAL_OPERATORS = [
   // Tier 1 — $50B+ revenue
   { id: 'china-mobile', name: 'China Mobile', country: 'CN', region: 'APAC', lat: 39.9042, lng: 116.4074, revenue: 140e9, subs: '1.00B', tier: 1, status: 'prospect' },

@@ -3,7 +3,7 @@ import { METROS, METRO_AGGREGATE } from '../data/metros.js';
 import { CENTRAL_OFFICES } from '../data/centralOffices.js';
 import { PLATFORMS } from '../data/constants.js';
 import { interpolateGrowth, getTotalSubscribers, getActiveMetroCount, getActiveMetroIds } from '../data/timeline.js';
-import { MARKET_SIZING, TOTAL_GLOBAL_OPERATORS, TOTAL_GLOBAL_REVENUE, TOTAL_GLOBAL_SUBS, REGION_STATS } from '../data/globalOperators.js';
+import { MARKET_SIZING, getMarketSizing, TOTAL_GLOBAL_OPERATORS, TOTAL_GLOBAL_REVENUE, TOTAL_GLOBAL_SUBS, REGION_STATS } from '../data/globalOperators.js';
 import ANLevelGauge from './ANLevelGauge.jsx';
 
 function fmt(n) {
@@ -114,7 +114,7 @@ export default function Sidebar({
       return aggregateStatuses(onts);
     }
     // Planet-level: synthesize realistic global numbers from subscriber counts.
-    const total = METRO_AGGREGATE.subscribers;
+    const total = getTotalSubscribers(year);
     return {
       total,
       healthy: Math.round(total * 0.92),
@@ -122,9 +122,10 @@ export default function Sidebar({
       alarm: Math.round(total * 0.02),
       offline: Math.round(total * 0.01)
     };
-  }, [focusedMetro, focusedCO, onts]);
+  }, [focusedMetro, focusedCO, onts, year]);
 
   const issues = useMemo(() => buildTopIssues({ focusedMetro, focusedCO, onts }), [focusedMetro, focusedCO, onts]);
+  const mkt = useMemo(() => getMarketSizing(year), [year]);
 
   return (
     <div className="pointer-events-auto absolute left-4 top-[10rem] bottom-[5.5rem] z-30 w-[19rem] overflow-y-auto pr-1">
@@ -400,24 +401,24 @@ export default function Sidebar({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-zinc-400">TAM · Global DT</span>
-                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.tam.label}</span>
+                <span className="font-mono text-[11px] text-amber-400">{mkt.tamLabel}</span>
               </div>
               <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                 <div className="h-full rounded-full bg-amber-500/40" style={{ width: '100%' }} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-zinc-400">SAM · Telecom DT</span>
-                <span className="font-mono text-[11px] text-amber-400">{MARKET_SIZING.sam.label}</span>
+                <span className="font-mono text-[11px] text-amber-400">{mkt.samLabel}</span>
               </div>
               <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full bg-amber-500/60" style={{ width: `${(MARKET_SIZING.sam.value / MARKET_SIZING.tam.value * 100).toFixed(1)}%` }} />
+                <div className="h-full rounded-full bg-amber-500/60" style={{ width: `${(mkt.sam / mkt.tam * 100).toFixed(1)}%` }} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-zinc-400">SOM · AXON Target</span>
-                <span className="font-mono text-[11px] text-emerald-400">{MARKET_SIZING.som.label}</span>
+                <span className="font-mono text-[11px] text-emerald-400">{mkt.somLabel}</span>
               </div>
               <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500/80" style={{ width: `${(MARKET_SIZING.som.value / MARKET_SIZING.sam.value * 100).toFixed(1)}%` }} />
+                <div className="h-full rounded-full bg-emerald-500/80" style={{ width: `${(mkt.som / mkt.sam * 100).toFixed(1)}%` }} />
               </div>
               <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
                 <div className="text-zinc-500">Operators mapped</div>
