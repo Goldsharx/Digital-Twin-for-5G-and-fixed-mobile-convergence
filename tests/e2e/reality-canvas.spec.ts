@@ -320,11 +320,11 @@ test.describe('US-13: MCP Panel', () => {
 test.describe('US-14: Role Switching', () => {
   test('shows all 5 role buttons', async ({ page }) => {
     await waitForApp(page);
-    await expect(page.locator('button').filter({ hasText: 'NOC' })).toBeVisible();
-    await expect(page.locator('button').filter({ hasText: 'CTO' })).toBeVisible();
-    await expect(page.locator('button').filter({ hasText: 'CFO' })).toBeVisible();
-    await expect(page.locator('button').filter({ hasText: 'CEO' })).toBeVisible();
-    await expect(page.locator('button').filter({ hasText: 'CX' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'NOC', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'CTO', exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'CFO', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'CEO', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'CX', exact: true })).toBeVisible();
   });
 
   test('NOC shows Top Issues section', async ({ page }) => {
@@ -336,7 +336,7 @@ test.describe('US-14: Role Switching', () => {
 
   test('CTO shows Technical Priorities section', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('button').filter({ hasText: 'CTO' }).click();
+    await page.getByRole('button', { name: 'CTO', exact: true }).first().click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Technical Priorities')).toBeVisible();
   });
@@ -356,13 +356,13 @@ test.describe('US-14: Role Switching', () => {
 
   test('CEO shows Market Opportunity with TAM/SAM/SOM', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('button').filter({ hasText: 'CEO' }).click();
+    await page.getByRole('button', { name: 'CEO', exact: true }).click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Market Opportunity')).toBeVisible();
     await expect(page.getByText('TAM (DT Market)')).toBeVisible();
-    await expect(page.getByText('$49.5B')).toBeVisible();
+    await expect(page.getByText('$49.5B').first()).toBeVisible();
     await expect(page.getByText('SAM (Telecom DT)')).toBeVisible();
-    await expect(page.getByText('$2.7B')).toBeVisible();
+    await expect(page.getByText('$2.7B').first()).toBeVisible();
     await expect(page.getByText('SOM (Top 100)')).toBeVisible();
     await expect(page.getByText('$108M').first()).toBeVisible();
   });
@@ -378,7 +378,7 @@ test.describe('US-14: Role Switching', () => {
 
   test('CEO and CX views hide Data Platforms section', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('button').filter({ hasText: 'CEO' }).click();
+    await page.getByRole('button', { name: 'CEO', exact: true }).click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Data Platforms')).not.toBeVisible();
 
@@ -525,13 +525,13 @@ test.describe('US-22: Historical/Projected Badges', () => {
 test.describe('US-23: Global Operator Map', () => {
   test('CEO view shows global operator stats in sidebar', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('button').filter({ hasText: 'CEO' }).click();
+    await page.getByRole('button', { name: 'CEO', exact: true }).click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Global Operators')).toBeVisible();
     await expect(page.getByText(/\d+ mapped/)).toBeVisible();
-    await expect(page.getByText('Global Subs')).toBeVisible();
-    await expect(page.getByText('Industry Revenue')).toBeVisible();
-    await expect(page.getByText(/16\.6%/)).toBeVisible();
+    await expect(page.getByText('Global Subs', { exact: true })).toBeVisible();
+    await expect(page.getByText('Industry Revenue', { exact: true })).toBeVisible();
+    await expect(page.getByText(/16\.6%/).first()).toBeVisible();
   });
 });
 
@@ -726,7 +726,7 @@ test.describe('User Journey: Full Demo Flow', () => {
     await waitForApp(page);
     const roles = ['NOC', 'CTO', 'CFO', 'CEO', 'CX'];
     for (const role of roles) {
-      await page.locator('button').filter({ hasText: role }).click();
+      await page.getByRole('button', { name: role, exact: true }).first().click();
       await page.waitForTimeout(400);
       await expect(page.getByText('Zoom Scope')).toBeVisible();
     }
@@ -737,7 +737,7 @@ test.describe('User Journey: Full Demo Flow', () => {
     await page.locator('[data-testid="timeline-slider"]').fill('2030', { force: true });
     await page.waitForTimeout(500);
 
-    await page.locator('button').filter({ hasText: 'CEO' }).click();
+    await page.getByRole('button', { name: 'CEO', exact: true }).click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Market Opportunity')).toBeVisible();
     await expect(page.getByText('Projected', { exact: true }).first()).toBeVisible();
