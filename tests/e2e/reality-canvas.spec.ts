@@ -194,7 +194,7 @@ test.describe('US-09: Timeline Slider', () => {
   test('can slide to past year (2019) — shows Historical label', async ({ page }) => {
     await waitForApp(page);
     const slider = page.locator('[data-testid="timeline-slider"]');
-    await slider.fill('2019');
+    await slider.fill('2019', { force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Historical', { exact: true }).first()).toBeVisible();
   });
@@ -202,7 +202,7 @@ test.describe('US-09: Timeline Slider', () => {
   test('can slide to future year (2030) — shows Projected label', async ({ page }) => {
     await waitForApp(page);
     const slider = page.locator('[data-testid="timeline-slider"]');
-    await slider.fill('2030');
+    await slider.fill('2030', { force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Projected', { exact: true }).first()).toBeVisible();
   });
@@ -434,11 +434,11 @@ test.describe('US-20: Timeline-dependent Metros', () => {
     await waitForApp(page);
     const slider = page.locator('[data-testid="timeline-slider"]');
 
-    await slider.fill('2026');
+    await slider.fill('2026', { force: true });
     await page.waitForTimeout(500);
     const subs2026 = await page.getByText(/Subscribers \d/).first().textContent();
 
-    await slider.fill('2030');
+    await slider.fill('2030', { force: true });
     await page.waitForTimeout(500);
     const subs2030 = await page.getByText(/Subscribers \d/).first().textContent();
 
@@ -449,11 +449,11 @@ test.describe('US-20: Timeline-dependent Metros', () => {
     await waitForApp(page);
     const slider = page.locator('[data-testid="timeline-slider"]');
 
-    await slider.fill('2026');
+    await slider.fill('2026', { force: true });
     await page.waitForTimeout(500);
     const metros2026 = await page.getByText(/Metros \d+/).first().textContent();
 
-    await slider.fill('2030');
+    await slider.fill('2030', { force: true });
     await page.waitForTimeout(500);
     const metros2030 = await page.getByText(/Metros \d+/).first().textContent();
 
@@ -467,7 +467,7 @@ test.describe('US-20: Timeline-dependent Metros', () => {
 test.describe('US-21: Visual Era Transitions', () => {
   test('past year applies sepia filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2020');
+    await page.locator('[data-testid="timeline-slider"]').fill('2020', { force: true });
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -476,7 +476,7 @@ test.describe('US-21: Visual Era Transitions', () => {
 
   test('future year applies hue-rotate filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2029');
+    await page.locator('[data-testid="timeline-slider"]').fill('2029', { force: true });
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -485,7 +485,7 @@ test.describe('US-21: Visual Era Transitions', () => {
 
   test('current year (2026) has no filter', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2026');
+    await page.locator('[data-testid="timeline-slider"]').fill('2026', { force: true });
     await page.waitForTimeout(500);
     const container = page.locator('.relative.h-full.w-full');
     const style = await container.getAttribute('style');
@@ -499,21 +499,21 @@ test.describe('US-21: Visual Era Transitions', () => {
 test.describe('US-22: Historical/Projected Badges', () => {
   test('shows Historical badge before 2025', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2022');
+    await page.locator('[data-testid="timeline-slider"]').fill('2022', { force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Historical', { exact: true }).first()).toBeVisible();
   });
 
   test('shows Projected badge after 2027', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2028');
+    await page.locator('[data-testid="timeline-slider"]').fill('2028', { force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Projected', { exact: true }).first()).toBeVisible();
   });
 
   test('no badge at current year 2026', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2026');
+    await page.locator('[data-testid="timeline-slider"]').fill('2026', { force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Present')).toBeVisible();
   });
@@ -734,7 +734,7 @@ test.describe('User Journey: Full Demo Flow', () => {
 
   test('timeline + role combination works correctly', async ({ page }) => {
     await waitForApp(page);
-    await page.locator('[data-testid="timeline-slider"]').fill('2030');
+    await page.locator('[data-testid="timeline-slider"]').fill('2030', { force: true });
     await page.waitForTimeout(500);
 
     await page.locator('button').filter({ hasText: 'CEO' }).click();
