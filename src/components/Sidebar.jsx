@@ -101,7 +101,8 @@ export default function Sidebar({
   onToggleMCP,
   showOperators,
   onToggleOperators,
-  onToggleModelMap
+  onToggleModelMap,
+  onToggleCTOMeeting
 }) {
   // Compute health buckets for the current scope.
   const scopeCounts = useMemo(() => {
@@ -382,6 +383,12 @@ export default function Sidebar({
             className="rounded-sm border border-pink-500/50 bg-pink-500/10 px-2 py-1.5 text-[10px] font-medium text-pink-400 transition hover:bg-pink-500/20"
           >
             Models
+          </button>
+          <button
+            onClick={onToggleCTOMeeting}
+            className="rounded-sm border border-orange-500/50 bg-orange-500/10 px-2 py-1.5 text-[10px] font-medium text-orange-400 transition hover:bg-orange-500/20"
+          >
+            CTO
           </button>
         </div>
 

@@ -22,6 +22,7 @@ import { generateCellTowers } from './data/cellTowers.js';
 import { SCENARIOS } from './data/scenarios.js';
 import GlobeControls from './components/GlobeControls.jsx';
 import ModelMapPanel from './components/ModelMapPanel.jsx';
+import CTOMeetingPanel from './components/CTOMeetingPanel.jsx';
 
 export default function App() {
   const viewerRef = useRef(null);
@@ -44,6 +45,7 @@ export default function App() {
   const [showAccounts, setShowAccounts] = useState(false);
   const [showOperators, setShowOperators] = useState(true);
   const [showModelMap, setShowModelMap] = useState(false);
+  const [showCTOMeeting, setShowCTOMeeting] = useState(false);
   const [activeScenario, setActiveScenario] = useState(null);
   const [role, setRole] = useState('noc');
   const [globeOpacity, setGlobeOpacity] = useState(1.0);
@@ -244,6 +246,7 @@ export default function App() {
         showOperators={showOperators}
         onToggleOperators={() => setShowOperators((s) => !s)}
         onToggleModelMap={() => setShowModelMap((s) => !s)}
+        onToggleCTOMeeting={() => setShowCTOMeeting((s) => !s)}
       />
 
       <Breadcrumb
@@ -329,6 +332,11 @@ export default function App() {
         visible={showModelMap}
         onClose={() => setShowModelMap(false)}
         onModelClick={(model) => handleSelect({ type: 'model', id: model.id, data: model })}
+      />
+
+      <CTOMeetingPanel
+        visible={showCTOMeeting}
+        onClose={() => setShowCTOMeeting(false)}
       />
 
       {storyStep !== null && (
